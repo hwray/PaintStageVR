@@ -1,0 +1,26 @@
+Initialize engine version: 4.6.3f1 (4753d8b6ef2b)
+GfxDevice: creating device client; threaded=1
+Direct3D:
+    Version:  Direct3D 11.0 [level 11.0]
+    Renderer: NVIDIA GeForce GTX 860M     (ID=0x1392)
+    Vendor:   NVIDIA
+    VRAM:     1991 MB
+Begin MonoManager ReloadAssembly
+Platform assembly: C:\cygwin\home\amber\GITHUB\AltspaceVR\new-project-threejs\Builds-Unity\AltspaceCursor_Data\Managed\UnityEngine.dll (this message is harmless)
+Loading C:\cygwin\home\amber\GITHUB\AltspaceVR\new-project-threejs\Builds-Unity\AltspaceCursor_Data\Managed\UnityEngine.dll into Unity Child Domain
+Platform assembly: C:\cygwin\home\amber\GITHUB\AltspaceVR\new-project-threejs\Builds-Unity\AltspaceCursor_Data\Managed\Assembly-CSharp-firstpass.dll (this message is harmless)
+Loading C:\cygwin\home\amber\GITHUB\AltspaceVR\new-project-threejs\Builds-Unity\AltspaceCursor_Data\Managed\Assembly-CSharp-firstpass.dll into Unity Child Domain
+Platform assembly: C:\cygwin\home\amber\GITHUB\AltspaceVR\new-project-threejs\Builds-Unity\AltspaceCursor_Data\Managed\Assembly-CSharp.dll (this message is harmless)
+Loading C:\cygwin\home\amber\GITHUB\AltspaceVR\new-project-threejs\Builds-Unity\AltspaceCursor_Data\Managed\Assembly-CSharp.dll into Unity Child Domain
+Platform assembly: C:\cygwin\home\amber\GITHUB\AltspaceVR\new-project-threejs\Builds-Unity\AltspaceCursor_Data\Managed\Assembly-UnityScript-firstpass.dll (this message is harmless)
+Loading C:\cygwin\home\amber\GITHUB\AltspaceVR\new-project-threejs\Builds-Unity\AltspaceCursor_Data\Managed\Assembly-UnityScript-firstpass.dll into Unity Child Domain
+Platform assembly: C:\cygwin\home\amber\GITHUB\AltspaceVR\new-project-threejs\Builds-Unity\AltspaceCursor_Data\Managed\UnityEngine.UI.dll (this message is harmless)
+Loading C:\cygwin\home\amber\GITHUB\AltspaceVR\new-project-threejs\Builds-Unity\AltspaceCursor_Data\Managed\UnityEngine.UI.dll into Unity Child Domain
+- Completed reload, in  0.057 seconds
+desktop: 1366x768 60Hz; virtual: 1920x1968 at -281,-1200
+<RI> Initializing input.
+XInput1_3.dll not found. Trying XInput9_1_0.dll instead...
+<RI> Input initialized.
+Platform assembly: C:\cygwin\home\amber\GITHUB\AltspaceVR\new-project-threejs\Builds-Unity\AltspaceCursor_Data\Managed\System.Core.dll (this message is harmless)
+WARNING: Shader Unsupported: 'Reflective/VertexLit' - Pass 'BASE' shader state not supported
+Platform assembly: C:\cygwin\home\amber\GITHUB\AltspaceVR\new-project-threejs\Builds-Unity\AltspaceCursor_Data\Managed\Boo.Lang.dll (this message is harmless)
