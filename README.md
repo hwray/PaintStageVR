@@ -18,8 +18,6 @@ We use this test to get a sense of your coding style and to how you creatively s
 
 - Is the code well structured, easy to read and understand, and organized well?
 
-This project should take approximately 5-15 hours to complete.
-
 
 # Part 1 - 3D Cursor
 
