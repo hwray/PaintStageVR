@@ -1,0 +1,14 @@
+{
+  "name": "altspacevr_project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "test"
+  },
+  "author": "hwray",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.14.1"
+  }
+}

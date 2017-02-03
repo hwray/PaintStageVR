@@ -1,0 +1,25 @@
+Initialize engine version: 4.6.3f1 (4753d8b6ef2b)
+GfxDevice: creating device client; threaded=1
+Direct3D:
+    Version:  Direct3D 11.0 [level 11.0]
+    Renderer: NVIDIA GeForce GTX 980 Ti (ID=0x17c8)
+    Vendor:   NVIDIA
+    VRAM:     3072 MB
+Begin MonoManager ReloadAssembly
+Platform assembly: C:\Users\hwray\Documents\AltspaceFirstCommit\Builds-Unity\AltspaceCursor_Data\Managed\UnityEngine.dll (this message is harmless)
+Loading C:\Users\hwray\Documents\AltspaceFirstCommit\Builds-Unity\AltspaceCursor_Data\Managed\UnityEngine.dll into Unity Child Domain
+Platform assembly: C:\Users\hwray\Documents\AltspaceFirstCommit\Builds-Unity\AltspaceCursor_Data\Managed\Assembly-CSharp-firstpass.dll (this message is harmless)
+Loading C:\Users\hwray\Documents\AltspaceFirstCommit\Builds-Unity\AltspaceCursor_Data\Managed\Assembly-CSharp-firstpass.dll into Unity Child Domain
+Platform assembly: C:\Users\hwray\Documents\AltspaceFirstCommit\Builds-Unity\AltspaceCursor_Data\Managed\Assembly-CSharp.dll (this message is harmless)
+Loading C:\Users\hwray\Documents\AltspaceFirstCommit\Builds-Unity\AltspaceCursor_Data\Managed\Assembly-CSharp.dll into Unity Child Domain
+Platform assembly: C:\Users\hwray\Documents\AltspaceFirstCommit\Builds-Unity\AltspaceCursor_Data\Managed\Assembly-UnityScript-firstpass.dll (this message is harmless)
+Loading C:\Users\hwray\Documents\AltspaceFirstCommit\Builds-Unity\AltspaceCursor_Data\Managed\Assembly-UnityScript-firstpass.dll into Unity Child Domain
+Platform assembly: C:\Users\hwray\Documents\AltspaceFirstCommit\Builds-Unity\AltspaceCursor_Data\Managed\UnityEngine.UI.dll (this message is harmless)
+Loading C:\Users\hwray\Documents\AltspaceFirstCommit\Builds-Unity\AltspaceCursor_Data\Managed\UnityEngine.UI.dll into Unity Child Domain
+- Completed reload, in  0.035 seconds
+desktop: 1920x1080 144Hz; virtual: 3840x1080 at 0,0
+<RI> Initializing input.
+<RI> Input initialized.
+Platform assembly: C:\Users\hwray\Documents\AltspaceFirstCommit\Builds-Unity\AltspaceCursor_Data\Managed\System.Core.dll (this message is harmless)
+WARNING: Shader Unsupported: 'Reflective/VertexLit' - Pass 'BASE' shader state not supported
+Platform assembly: C:\Users\hwray\Documents\AltspaceFirstCommit\Builds-Unity\AltspaceCursor_Data\Managed\Boo.Lang.dll (this message is harmless)
