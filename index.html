@@ -11,6 +11,7 @@
 	<script src="libs/MTLLoader.js"> </script>
 	<script src="libs/OBJMTLLoader.js"> </script>
 	<script src="SphericalCursor.js"> </script>
+	<script src="Controls.js"> </script>
 	<style>
 
 		html, body {
@@ -248,8 +249,9 @@ function requestPointerLock() {
 
 				blocker.style.display = 'none';
 
-				// Enable cursor on pointer lock
+				// Enable cursor and controls on pointer lock
 				SphericalCursor.setEnabled(true); 
+				Controls.setEnabled(true); 
 
 			} else {
 
@@ -259,8 +261,9 @@ function requestPointerLock() {
 
 				instructions.style.display = '';
 
-				// Disable cursor when pointer lock is lost
+				// Disable cursor and controls when pointer lock is lost
 				SphericalCursor.setEnabled(false); 
+				Controls.setEnabled(false); 
 
 			}
 
@@ -339,6 +342,8 @@ function animate() {
 	window.requestAnimationFrame( animate );
 
 	SphericalCursor.update();
+
+	Controls.update(); 
 
 	renderer.render( scene, camera );
 
