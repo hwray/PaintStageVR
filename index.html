@@ -248,6 +248,9 @@ function requestPointerLock() {
 
 				blocker.style.display = 'none';
 
+				// Enable cursor on pointer lock
+				SphericalCursor.setEnabled(true); 
+
 			} else {
 
 				blocker.style.display = '-webkit-box';
@@ -255,6 +258,9 @@ function requestPointerLock() {
 				blocker.style.display = 'box';
 
 				instructions.style.display = '';
+
+				// Disable cursor when pointer lock is lost
+				SphericalCursor.setEnabled(false); 
 
 			}
 
