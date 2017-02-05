@@ -1,8 +1,8 @@
 var Controls = function() {
 
 
-	function init() {
-		DesktopControls.init(); 
+	function init( camera, scene ) {
+		DesktopControls.init( camera, scene ); 
 	}
 
 

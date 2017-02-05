@@ -1,4 +1,4 @@
-function Player( inId, isLocalPlayer ) {
+function Player( inId, isLocalPlayer, camera, scene ) {
 	
 	// Globals
 	var isLocal; 
@@ -6,11 +6,13 @@ function Player( inId, isLocalPlayer ) {
 	var id; 
 	var isEnabled; 
 
+	var PLAYER_SIZE = 1; 
 
-	init( inId, isLocalPlayer ); 
+
+	init( inId, isLocalPlayer, camera, scene ); 
 
 
-	function init( inId, isLocalPlayer ) {
+	function init( inId, isLocalPlayer, camera, scene ) {
 
 		id = inId; 
 		isLocal = isLocalPlayer; 
@@ -19,7 +21,17 @@ function Player( inId, isLocalPlayer ) {
 
 		if ( isLocal ) {
 
-			Controls.init(); 
+			if ( WebVR.isAvailable() === false ) {
+
+				console.log( "No WebVR available!" ); 
+				//document.body.appendChild( WebVR.getMessage() );
+
+			} else {
+
+				console.log( "WebVR available!" ); 
+			}
+
+			Controls.init( camera, scene ); 
 
 		} else {
 
@@ -30,7 +42,7 @@ function Player( inId, isLocalPlayer ) {
 
 	function initMesh() {
 
-		var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+		var geometry = new THREE.BoxGeometry( PLAYER_SIZE, PLAYER_SIZE, PLAYER_SIZE );
    		var material = new THREE.MeshBasicMaterial( { color: 0x7777ff, wireframe: false } );
    		mesh = new THREE.Mesh( geometry, material );
 
@@ -44,7 +56,6 @@ function Player( inId, isLocalPlayer ) {
 
 		if ( isEnabled && isLocal ) {
 			Controls.update(); 
-			Client.getSocket().emit( 'updatePosition', { id: id, pos: Controls.getPosition(), dir: Controls.getDirection() } ); 
 		}
 
 	}
@@ -63,11 +74,23 @@ function Player( inId, isLocalPlayer ) {
 	}
 
 
+	function getData() {
+
+		return {
+			id: id, 
+			pos: isLocal ? Controls.getPosition() : mesh.position,
+			dir: isLocal ? Controls.getDirection() : mesh.rotation
+		}; 
+	}
+
+
 
 	return {
 		update: update, 
 		mesh: mesh, 
 		setEnabled: setEnabled, 
-		updatePosition: updatePosition
+		updatePosition: updatePosition,
+		getData: getData, 
+		id: id
 	}; 
 }

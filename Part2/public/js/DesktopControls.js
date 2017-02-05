@@ -8,6 +8,7 @@ var DesktopControls = function() {
 	var JUMP_HEIGHT = 15; 								// controls jump height/speed
 	var GRAVITY = 9.8; 									// controls gravitational constant
 	var CAMERA_HEIGHT = 10; 							// camera height as set in index.html - used for checking collision while jumping
+	var PI_2 = Math.PI / 2; 
 
 	// Globals
 	var enabled = true; 								// sets whether the controls are currently active
@@ -15,23 +16,38 @@ var DesktopControls = function() {
 	var moveBack = false; 								// is back movement key currently pressed
 	var moveLeft = false; 								// is left movement key currently pressed
 	var moveRight = false; 								// is right movement key currently pressed
+	var lookUp = false; 
+	var lookDown = false; 
+	var lookLeft = false; 
+	var lookRight = false; 
 	var velocity = new THREE.Vector3(); 				// tracks current player velocity for smoother acceleration/deceleration
 	var clock = new THREE.Clock(); 						// clock for tracking time between frames
 	raycaster = new THREE.Raycaster( new THREE.Vector3(), new THREE.Vector3( 0, -1, 0 ), 0, HEIGHT );		// raycaster for checking collision while jumping
 
+	var pitchObject; 
+	var yawObject; 
+
 	var HEIGHT = 10; 
 
-	var mouseControls; 
-	var keyboardControls; 
 
 	// Events
 	document.addEventListener( 'keydown', onKeyDown, false );
 	document.addEventListener( 'keyup', onKeyUp, false );
 
-	function init() {
+	function init( camera, scene ) {
 
-    	mouseControls = new THREE.PointerLockControls( Core.getCamera() );
-    	Core.getScene().add( mouseControls.getObject() );
+    	camera.rotation.set( 0, 0, 0 );
+
+		pitchObject = new THREE.Object3D();
+		pitchObject.add( camera );
+
+		yawObject = new THREE.Object3D();
+		yawObject.position.y = 10;
+		yawObject.add( pitchObject );
+
+		scene.add( yawObject ); 
+
+    	SphericalCursor.init( camera, scene ); 
 	}
 
 	function update() {
@@ -40,11 +56,15 @@ var DesktopControls = function() {
 			return; 
 		}
 
+		SphericalCursor.update(); 
+
 		// Get delta time from last update
 		var delta = clock.getDelta(); 
 
 		// Update camera velocity
 		updateVelocity( delta ); 
+
+		updateLook(); 
 
 		// Update jump state
 		updateJump(); 
@@ -72,12 +92,27 @@ var DesktopControls = function() {
 	}
 
 
+	function updateLook() {
+		var movementX = 0
+		var movementY = 0; 
+
+		if ( lookLeft ) movementX -= 0.05; 
+		if ( lookRight ) movementX += 0.05; 
+		if ( lookUp )	movementY -= 0.05; 
+		if ( lookDown ) movementY += 0.05; 
+
+		yawObject.rotation.y -= movementX;
+		pitchObject.rotation.x -= movementY;
+
+		pitchObject.rotation.x = Math.max( - PI_2, Math.min( PI_2, pitchObject.rotation.x ) );
+	}
+
+
 	function updateJump() {
 
-		// Raycast downwards from the camera position to the ground
-		raycaster.ray.origin.copy( mouseControls.getObject().position );
+		raycaster.ray.origin.copy( yawObject.position );
 		raycaster.ray.origin.y -= HEIGHT;
-		var intersects = raycaster.intersectObjects( Core.getScene().children );
+		var intersects = raycaster.intersectObjects( Core.getSceneObjects(), true );
 
 		if ( intersects.length > 0 ) {
 			// Object intersected - we are on the ground
@@ -89,14 +124,13 @@ var DesktopControls = function() {
 
 	function updatePosition( delta ) {
 
-		// Move the camera according to current velocity
-		mouseControls.getObject().translateX( velocity.x * delta );
-		mouseControls.getObject().translateY( velocity.y * delta );
-		mouseControls.getObject().translateZ( velocity.z * delta );
+		yawObject.translateX( velocity.x * delta );
+		yawObject.translateY( velocity.y * delta );
+		yawObject.translateZ( velocity.z * delta );
 
-		if ( mouseControls.getObject().position.y < HEIGHT ) {
+		if ( yawObject.position.y < HEIGHT ) {
 			velocity.y = 0;
-			mouseControls.getObject().position.y = HEIGHT;
+			yawObject.position.y = HEIGHT;
 		} 
 	}
 
@@ -106,21 +140,33 @@ var DesktopControls = function() {
 		switch ( event.keyCode ) {
 
 			case 38: // up
+				lookUp = true; 
+				break; 
+
 			case 87: // w
 				moveFront = true;
 				break;
 
 			case 37: // left
+				lookLeft = true; 
+				break; 
+
 			case 65: // a
 				moveLeft = true; 
 				break;
 
 			case 40: // down
+				lookDown = true; 
+				break; 
+
 			case 83: // s
 				moveBack = true;
 				break;
 
 			case 39: // right
+				lookRight = true; 
+				break; 
+
 			case 68: // d
 				moveRight = true;
 				break;
@@ -133,21 +179,33 @@ var DesktopControls = function() {
 		switch( event.keyCode ) {
 
 			case 38: // up
+				lookUp = false; 
+				break; 
+
 			case 87: // w
 				moveFront = false;
 				break;
 
 			case 37: // left
+				lookLeft = false; 
+				break; 
+
 			case 65: // a
 				moveLeft = false;
 				break;
 
 			case 40: // down
+				lookDown = false; 
+				break; 
+
 			case 83: // s
 				moveBack = false;
 				break;
 
 			case 39: // right
+				lookRight = false; 
+				break; 
+
 			case 68: // d
 				moveRight = false;
 				break;	
@@ -158,16 +216,25 @@ var DesktopControls = function() {
 	function setEnabled( bool ) {
 
 		enabled = bool; 
-		mouseControls.enabled = bool; 
 	}
 
 
 	function getPosition() {
-		return mouseControls.getObject().position; 
+		return yawObject.position; 
 	}
 
 	function getDirection() {
-		return mouseControls.getDirection( new THREE.Vector3() ); 
+
+		var direction = new THREE.Vector3( 0, 0, - 1 );
+		var rotation = new THREE.Euler( 0, 0, 0, "YXZ" );
+
+		var v = new THREE.Vector3(); 
+
+		rotation.set( pitchObject.rotation.x, yawObject.rotation.y, 0 );
+
+		v.copy( direction ).applyEuler( rotation );
+
+		return v;
 	}
 
 

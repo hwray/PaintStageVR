@@ -42,8 +42,8 @@ io.on( 'connection', function( socket ) {
     });
 
 
-    socket.on( 'updatePosition', function( data ) {
-    	socket.broadcast.emit( 'updatePosition', data );
+    socket.on( 'update', function( data ) {
+    	socket.broadcast.emit( 'update', data );
     });
 
 

@@ -21,14 +21,12 @@ var Core = function() {
 		initRenderer(); 
 
 		initPointerLockEvents(); 
-
-		animate();
 	}
 
 
 	function initScene() {
 
-		camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1000 );
+		camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, .01, 1000 );
 
 		scene = new THREE.Scene();
 		scene.fog = new THREE.Fog( 0xffffff, 0, 750 );
@@ -71,10 +69,13 @@ var Core = function() {
 
 	function initRenderer() {
 
-		renderer = new THREE.WebGLRenderer();
-		renderer.setClearColor( 0xffffff );
+		renderer = new THREE.WebGLRenderer( { antialias: true } );
 		renderer.setPixelRatio( window.devicePixelRatio );
 		renderer.setSize( window.innerWidth, window.innerHeight );
+		renderer.sortObjects = false; 
+		renderer.shadowMap.enabled = true; 
+		renderer.gammaInput = true; 
+		renderer.gammaOutput = true; 
 		document.body.appendChild( renderer.domElement );
 	}
 
@@ -147,16 +148,17 @@ var Core = function() {
 	}
 
 
-	function animate() {
+	function update() {
 
-		requestAnimationFrame( animate );
-
-		if ( player ) {
+		if ( player && renderer ) {
 			player.update(); 
+
+			renderer.render( scene, camera );
+
+			return getUpdateData(); 
 		}
 
-		renderer.render( scene, camera );
-
+		return null; 
 	}
 
 
@@ -171,14 +173,12 @@ var Core = function() {
 
 	function createPlayer( id ) {
 
-		player = new Player( id, true ); 
-
-		Controls.init(); 
+		player = new Player( id, true, camera, scene ); 
 	}
 
 
-	function updatePlayerPosition( data ) {
-		if ( id = player.id ) {
+	function updateFromNetwork( data ) {
+		if ( player && player.id == data.id ) {
 			return; 
 		}
 
@@ -191,7 +191,7 @@ var Core = function() {
 
 	function addOtherPlayer( id ) {
 
-		if ( id == player.id ) {
+		if ( player && player.id == id ) {
 			return; 
 		} 
 
@@ -204,30 +204,46 @@ var Core = function() {
 	}
 
 
-	function removeOtherPlayer( id ){
+	function removeOtherPlayer( id ) {
 
 	    scene.remove( otherPlayers[ id ].mesh );
+
+	    delete otherPlayers[ id ]; 
 	}
 
 
-	function getCamera() {
-		return camera; 
+
+	function getUpdateData() {
+
+		if (player) {
+			return player.getData(); 
+		}
+
+
+		return null; 
 	}
 
 
-	function getScene() {
-		return scene; 
+	function getCursorObjects() {
+		return [ mesh ]; 
 	}
+
+	function getSceneObjects() {
+		return scene.children; 
+	}
+
 
 
 	return {
 		init: init, 
+		update: update, 
 		createPlayer: createPlayer, 
 		addOtherPlayer: addOtherPlayer, 
 		removeOtherPlayer: removeOtherPlayer,
-		updatePlayerPosition: updatePlayerPosition, 
-		getCamera: getCamera, 
-		getScene: getScene
+		updateFromNetwork: updateFromNetwork, 
+		
+		getCursorObjects: getCursorObjects, 
+		getSceneObjects: getSceneObjects
 	}; 
 
 }(); 
