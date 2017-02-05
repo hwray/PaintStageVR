@@ -4,10 +4,9 @@ var DesktopControls = function() {
 	// https://github.com/mrdoob/three.js/blob/master/examples/misc_controls_pointerlock.html
 
 	// Constants
-	var SPEED = 5000.0;									// controls rate of speed for movement
-	var JUMP_HEIGHT = 15; 								// controls jump height/speed
+	var SPEED = 500.0;									// controls rate of speed for movement
+	var JUMP_HEIGHT = 10; 								// controls jump height/speed
 	var GRAVITY = 9.8; 									// controls gravitational constant
-	var CAMERA_HEIGHT = 10; 							// camera height as set in index.html - used for checking collision while jumping
 	var PI_2 = Math.PI / 2; 
 
 	// Globals
@@ -20,23 +19,25 @@ var DesktopControls = function() {
 	var lookDown = false; 
 	var lookLeft = false; 
 	var lookRight = false; 
+	var canJump = false; 
+	var height = 1.8; 
 	var velocity = new THREE.Vector3(); 				// tracks current player velocity for smoother acceleration/deceleration
 	var clock = new THREE.Clock(); 						// clock for tracking time between frames
-	raycaster = new THREE.Raycaster( new THREE.Vector3(), new THREE.Vector3( 0, -1, 0 ), 0, HEIGHT );		// raycaster for checking collision while jumping
+	raycaster = new THREE.Raycaster( new THREE.Vector3(), new THREE.Vector3( 0, -1, 0 ), 0, height );		// raycaster for checking collision while jumping
 
 	var pitchObject; 
 	var yawObject; 
-
-	var HEIGHT = 10; 
-
 
 	// Events
 	document.addEventListener( 'keydown', onKeyDown, false );
 	document.addEventListener( 'keyup', onKeyUp, false );
 
-	function init( camera, scene ) {
+	function init( camera, scene, inHeight ) {
 
     	camera.rotation.set( 0, 0, 0 );
+
+    	height = inHeight; 
+    	raycaster.far = height; 
 
 		pitchObject = new THREE.Object3D();
 		pitchObject.add( camera );
@@ -82,7 +83,7 @@ var DesktopControls = function() {
 		velocity.z = 0; 
 
 		// Decrease current Y velocity by gravity constant
-		velocity.y -= GRAVITY * 100.0 * delta;
+		velocity.y -= GRAVITY * 10.0 * delta;
 
 		// Add velocity from currently pressed movement keys
 		if ( moveFront ) velocity.z -= SPEED * delta;
@@ -111,13 +112,15 @@ var DesktopControls = function() {
 	function updateJump() {
 
 		raycaster.ray.origin.copy( yawObject.position );
-		raycaster.ray.origin.y -= HEIGHT;
+		//raycaster.ray.origin.y -= height;
 		var intersects = raycaster.intersectObjects( Core.getSceneObjects(), true );
 
 		if ( intersects.length > 0 ) {
 			// Object intersected - we are on the ground
 
 			velocity.y = Math.max( 0, velocity.y );
+
+			canJump = true; 
 		}
 	}
 
@@ -128,9 +131,9 @@ var DesktopControls = function() {
 		yawObject.translateY( velocity.y * delta );
 		yawObject.translateZ( velocity.z * delta );
 
-		if ( yawObject.position.y < HEIGHT ) {
+		if ( yawObject.position.y < height ) {
 			velocity.y = 0;
-			yawObject.position.y = HEIGHT;
+			yawObject.position.y = height;
 		} 
 	}
 
@@ -169,6 +172,13 @@ var DesktopControls = function() {
 
 			case 68: // d
 				moveRight = true;
+				break;
+
+			case 32: // space
+				if ( canJump === true ) {
+					velocity.y += JUMP_HEIGHT;
+					canJump = false;
+				}
 				break;
 		}
 	}

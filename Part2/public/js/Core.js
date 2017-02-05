@@ -3,14 +3,17 @@ var Core = function() {
 	// Globals
 	var camera; 
 	var scene; 
-	var renderer; 
-	var mesh; 
+	var renderer;
+	var effect;  
 	var player; 
 	var otherPlayers = { }; 
+	var cursorObjects = [ ]; 
+	var isWebVR = false; 
 
 
 	// Events
 	window.addEventListener( 'resize', onWindowResize, false );
+
 
 	function init() {
 
@@ -21,6 +24,24 @@ var Core = function() {
 		initRenderer(); 
 
 		initPointerLockEvents(); 
+
+		isWebVR = WebVR.isAvailable(); 
+
+		if ( isWebVR ) {
+
+			console.log("WebVR available!"); 
+
+			effect = new THREE.VREffect( renderer );
+
+			document.body.appendChild( WebVR.getButton( effect ) );
+		
+		} else {
+
+			console.log( "No WebVR available!" ); 
+			document.body.appendChild( WebVR.getMessage() );
+
+		}
+
 	}
 
 
@@ -29,41 +50,69 @@ var Core = function() {
 		camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, .01, 1000 );
 
 		scene = new THREE.Scene();
+		scene.background = new THREE.Color( 0x222222 );
 		scene.fog = new THREE.Fog( 0xffffff, 0, 750 );
 
-		var light = new THREE.HemisphereLight( 0xeeeeff, 0x777788, 0.75 );
-		light.position.set( 0.5, 1, 0.75 );
+		scene.add( new THREE.HemisphereLight( 0x888877, 0x777788 ) );
+
+		var light = new THREE.DirectionalLight( 0xffffff );
+		light.position.set( 0, 6, 0 );
+		light.castShadow = true;
+		light.shadow.camera.top = 2;
+		light.shadow.camera.bottom = -2;
+		light.shadow.camera.right = 2;
+		light.shadow.camera.left = -2;
+		light.shadow.mapSize.set( 4096, 4096 );
 		scene.add( light );
+		// scene.add( new THREE.DirectionalLightHelper( light ) );
+		// scene.add( new THREE.CameraHelper( light.shadow.camera ) );
+		//
 	}
+
 
 
 	function initGeometry() {
 
-		var geometry = new THREE.PlaneGeometry( 2000, 2000, 100, 100 );
-		geometry.rotateX( - Math.PI / 2 );
+		var geometry = new THREE.BoxGeometry( 0.5, 0.8, 0.5 );
+		var material = new THREE.MeshStandardMaterial( {
+			color: 0x444444,
+			roughness: 1.0,
+			metalness: 0.0
+		} );
 
-		for ( var i = 0, l = geometry.vertices.length; i < l; i ++ ) {
+		var table = new THREE.Mesh( geometry, material );
 
-			var vertex = geometry.vertices[ i ];
-			vertex.x += Math.random() * 20 - 10;
-			vertex.y += Math.random() * 2;
-			vertex.z += Math.random() * 20 - 10;
+		table.position.y = 0.35;
+		table.position.z = 0.85;
+		table.castShadow = true;
+		table.receiveShadow = true;
+		scene.add( table );
 
-		}
+		/*
+		var table = new THREE.Mesh( geometry, material );
+		table.position.y = 0.35;
+		table.position.z = -0.85;
+		table.castShadow = true;
+		table.receiveShadow = true;
+		scene.add( table );
+		*/
 
-		for ( var i = 0, l = geometry.faces.length; i < l; i ++ ) {
+		var geometry = new THREE.PlaneGeometry( 4, 4 );
+		var material = new THREE.MeshStandardMaterial( {
+			color: 0x222222,
+			roughness: 1.0,
+			metalness: 0.0
+		} );
 
-			var face = geometry.faces[ i ];
-			face.vertexColors[ 0 ] = new THREE.Color().setHSL( Math.random() * 0.3 + 0.5, 0.75, Math.random() * 0.25 + 0.75 );
-			face.vertexColors[ 1 ] = new THREE.Color().setHSL( Math.random() * 0.3 + 0.5, 0.75, Math.random() * 0.25 + 0.75 );
-			face.vertexColors[ 2 ] = new THREE.Color().setHSL( Math.random() * 0.3 + 0.5, 0.75, Math.random() * 0.25 + 0.75 );
+		var floor = new THREE.Mesh( geometry, material );
 
-		}
+		floor.rotation.x = - Math.PI / 2;
+		floor.receiveShadow = true;
+		scene.add( floor );
+		scene.add( new THREE.GridHelper( 20, 40, 0x111111, 0x111111 ) );
 
-		var material = new THREE.MeshBasicMaterial( { vertexColors: THREE.VertexColors } );
-
-		mesh = new THREE.Mesh( geometry, material );
-		scene.add( mesh );
+		cursorObjects.push(table); 
+		cursorObjects.push(floor); 
 	}
 
 
@@ -151,9 +200,14 @@ var Core = function() {
 	function update() {
 
 		if ( player && renderer ) {
+
 			player.update(); 
 
-			renderer.render( scene, camera );
+			if ( isWebVR ) {
+				effect.render( scene, camera ); 
+			} else {
+				renderer.render( scene, camera );
+			}
 
 			return getUpdateData(); 
 		}
@@ -167,13 +221,17 @@ var Core = function() {
 		camera.aspect = window.innerWidth / window.innerHeight;
 		camera.updateProjectionMatrix();
 
-		renderer.setSize( window.innerWidth, window.innerHeight );
+		if ( isWebVR ) {
+			effect.setSize( window.innerWidth, window.innerHeight );
+		} else {
+			renderer.setSize( window.innerWidth, window.innerHeight );
+		}
 	}
 
 
 	function createPlayer( id ) {
 
-		player = new Player( id, true, camera, scene ); 
+		player = new Player( id, true, isWebVR, camera, scene ); 
 	}
 
 
@@ -184,7 +242,7 @@ var Core = function() {
 
 		if ( otherPlayers[ data.id ] ) {
 
-			otherPlayers[ data.id ].updatePosition( data );
+			otherPlayers[ data.id ].updateFromNetwork( data );
 		}
 	}
 
@@ -195,7 +253,7 @@ var Core = function() {
 			return; 
 		} 
 
-		var otherPlayer = new Player( id, false ); 
+		var otherPlayer = new Player( id, false, false, camera, scene ); 
 
 	    otherPlayers[ id ] = otherPlayer;
 
@@ -215,18 +273,19 @@ var Core = function() {
 
 	function getUpdateData() {
 
-		if (player) {
+		if ( player ) {
+
 			return player.getData(); 
 		}
-
 
 		return null; 
 	}
 
 
 	function getCursorObjects() {
-		return [ mesh ]; 
+		return cursorObjects; 
 	}
+
 
 	function getSceneObjects() {
 		return scene.children; 
@@ -241,7 +300,7 @@ var Core = function() {
 		addOtherPlayer: addOtherPlayer, 
 		removeOtherPlayer: removeOtherPlayer,
 		updateFromNetwork: updateFromNetwork, 
-		
+
 		getCursorObjects: getCursorObjects, 
 		getSceneObjects: getSceneObjects
 	}; 

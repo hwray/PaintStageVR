@@ -34,7 +34,7 @@ io.on( 'connection', function( socket ) {
 
     socket.on( 'requestOldPlayers', function() {
         for ( var i = 0; i < players.length; i++ ) {
-            if ( players[i].id != id ) {
+            if ( players[i] != id ) {
             	// Send position data as well? 
                 socket.emit( 'addOtherPlayer', players[i] );
             }

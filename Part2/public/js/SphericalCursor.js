@@ -2,11 +2,11 @@ var SphericalCursor = function() {
 
 	// CONSTANTS
 	var SENSITIVITY = 5000;              			// to adjust how sensitive the mouse control is
-	var DISTANCE_SCALE_FACTOR = -0.05;  			// to scale down the cursor based on its collision distance
-	var DEFAULT_CURSOR_SCALE = 2;     				// scale to set the cursor if no raycast hit is found
+	var DISTANCE_SCALE_FACTOR = -0.1;  			// to scale down the cursor based on its collision distance
+	var DEFAULT_CURSOR_SCALE = 0.5;     				// scale to set the cursor if no raycast hit is found
 	var HIGHLIGHT_COLOR = 0x66ffff; 				// highlight tint for objects selected with cursor
 	var DEFAULT_COLOR = 0xfffffff; 					// default object tint
-	var SCROLL_WHEEL_SENSITIVITY = 5; 
+	var SCROLL_WHEEL_SENSITIVITY = 0.5; 
 
 	// Globals
 	var enabled = true; 							// controls whether the cursor is active
@@ -14,8 +14,7 @@ var SphericalCursor = function() {
 	var hit = null; 								// tracks the current object being intersected by the cursor
 	var raycaster = new THREE.Raycaster();			// raycaster for getting intersects
 	var cursor; 
-	var sphereRadius = 100;           			// sphere radius to project cursor onto if no raycast hit. NO LONGER USING. 
-	var maxDistance = 100;             			// maximum distance to raycast
+	var maxDistance = 50;             			// maximum distance to raycast
 	raycaster.far = maxDistance;  					// set max distance to raycast
 	var camera; 
 
@@ -135,7 +134,7 @@ var SphericalCursor = function() {
 			cursor.position.copy( hit.point ); 
 
 			// Scale cursor by distance and DISTANCE_SCALE_FACTOR
-			var scale = ( hit.distance * DISTANCE_SCALE_FACTOR + 1.0 ) / 2.0
+			var scale = ( hit.distance * DISTANCE_SCALE_FACTOR + 1.0 ) / 2.0; 
 			cursor.scale.set( scale, scale, scale ); 
 
 		} else {

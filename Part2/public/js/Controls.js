@@ -1,28 +1,66 @@
 var Controls = function() {
 
+	var isWebVR = false; 
 
-	function init( camera, scene ) {
-		DesktopControls.init( camera, scene ); 
+
+	function init( camera, scene, inIsWebVR, height ) {
+
+		isWebVR = inIsWebVR; 
+
+		if ( isWebVR ) {
+
+			ViveControls.init( camera, scene ); 
+
+		} else {
+
+			DesktopControls.init( camera, scene, height ); 
+
+		}
 	}
 
 
 	function update() {
-		DesktopControls.update(); 
+
+		if ( isWebVR ) {
+
+			ViveControls.update(); 
+
+		} else {
+
+			DesktopControls.update(); 
+		}
 	}
 
 
 	function setEnabled( bool ) {
-		DesktopControls.setEnabled( bool ); 
+
+		if ( isWebVR ) {
+
+		} else {
+
+			DesktopControls.setEnabled( bool ); 
+		}
 	}
 
 
 	function getPosition() {
-		return DesktopControls.getPosition(); 
+
+		if ( isWebVR ) {
+
+		} else {
+
+			return DesktopControls.getPosition(); 	
+		}
 	}
 
 
 	function getDirection() {
-		return DesktopControls.getDirection(); 
+
+		if ( isWebVR ) {
+
+		} else {
+			return DesktopControls.getDirection(); 	
+		}
 	}
 
 
