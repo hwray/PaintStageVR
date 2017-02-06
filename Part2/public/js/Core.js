@@ -1,44 +1,26 @@
 var Core = function() {
 
 	// Globals
-	var camera; 
-	var scene; 
-	var renderer;
-	var effect;  
 	var player; 
 	var otherPlayers = { }; 
 	var cursorObjects = [ ]; 
 	var draggableObjects = [ ]; 
 	var isWebVR = false; 
-	var loader; 
-	var assetIDs = [ 
-		"flamingo",
-		"fox", 
-		"horse",
-		"hummingbird", 
-		"parrot", 
-		"rabbit", 
-		"toad", 
-		"treefrog", 
-		"stork"
-	]; 
 	var clock = new THREE.Clock(); 
-	var mixers = [ ]; 
 
+	var middleMouseDown = false; 
 
 	// Events
 	window.addEventListener( 'resize', onWindowResize, false );
+	window.addEventListener( 'mousedown', onMouseDown, false ); 
+	window.addEventListener( 'mouseup', onMouseUp, false ); 
+	window.addEventListener( "DOMMouseScroll", onScroll, false ); // for Firefox
+	window.addEventListener( "mousewheel",    onScroll, false ); // for everyone else
 
 
 	function init() {
 
-		initScene(); 
-
-		initGeometry(); 
-
-		initRenderer(); 
-
-		initModels(); 
+		Scene.init(); 
 
 		initPointerLockEvents(); 
 
@@ -57,186 +39,6 @@ var Core = function() {
 			console.log( "No WebVR available!" ); 
 			//document.body.appendChild( WebVR.getMessage() );
 
-		}
-
-	}
-
-
-	function initScene() {
-
-		camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, .01, 1000 );
-
-		scene = new THREE.Scene();
-		scene.background = new THREE.Color( 0x222222 );
-		scene.fog = new THREE.Fog( 0xffffff, 0, 750 );
-
-		scene.add( new THREE.HemisphereLight( 0x888877, 0x777788 ) );
-
-/*
-		var light = new THREE.DirectionalLight( 0xffffff );
-		light.position.set( 0, 0, 0 );
-		light.castShadow = true;
-		light.shadow.camera.top = 2;
-		light.shadow.camera.bottom = -2;
-		light.shadow.camera.right = 2;
-		light.shadow.camera.left = -2;
-		light.shadow.mapSize.set( 4096, 4096 );
-		*/
-
-		var light = new THREE.SpotLight( 0xffffff ); 
-
-		// TODO: Params??? 
-
-		light.castShadow = true; 
-		light.shadow.camera.top = 2;
-		light.shadow.camera.bottom = -2;
-		light.shadow.camera.right = 2;
-		light.shadow.camera.left = -2;
-		light.shadow.mapSize.set( 4096, 4096 );
-
-
-		var geometry = new THREE.BoxGeometry( 0.2, 0.2, 0.2 );
-		var material = new THREE.MeshBasicMaterial( { color: 0xffffff } );
-		var lightCube = new THREE.Mesh( geometry, material );
-		lightCube.position.set( 0, 6, 0); 
-
-		lightCube.add( light ); 
-
-		lightCube.name = "lightCube"; 
-
-		Core.addCursorObject( lightCube, true ); 
-
-
-		//scene.add( light );
-
-
-		// scene.add( new THREE.DirectionalLightHelper( light ) );
-		// scene.add( new THREE.CameraHelper( light.shadow.camera ) );
-		//
-	}
-
-
-
-	function initGeometry() {
-
-		var geometry = new THREE.BoxGeometry( 2, 1.5, 1 );
-		var material = new THREE.MeshStandardMaterial( {
-			color: 0x444444,
-			roughness: 1.0,
-			metalness: 0.0
-		} );
-
-		var table = new THREE.Mesh( geometry, material );
-
-		table.position.y = 0.35;
-		table.position.z = 0.85;
-		table.castShadow = true;
-		table.receiveShadow = true;
-		table.name = "table"; 
-		scene.add( table );
-
-		/*
-		var table = new THREE.Mesh( geometry, material );
-		table.position.y = 0.35;
-		table.position.z = -0.85;
-		table.castShadow = true;
-		table.receiveShadow = true;
-		scene.add( table );
-		*/
-
-		var geometry = new THREE.PlaneGeometry( 4, 4 );
-		var material = new THREE.MeshStandardMaterial( {
-			color: 0x222222,
-			roughness: 1.0,
-			metalness: 0.0
-		} );
-
-		var floor = new THREE.Mesh( geometry, material );
-
-		floor.rotation.x = - Math.PI / 2;
-		floor.receiveShadow = true;
-		floor.name = "floor"; 
-		scene.add( floor );
-		scene.add( new THREE.GridHelper( 20, 40, 0x111111, 0x111111 ) );
-
-		cursorObjects.push(table); 
-		cursorObjects.push(floor); 
-	}
-
-
-	function initRenderer() {
-
-		renderer = new THREE.WebGLRenderer( { antialias: true } );
-		renderer.setPixelRatio( window.devicePixelRatio );
-		renderer.setSize( window.innerWidth, window.innerHeight );
-		renderer.shadowMap.enabled = true; 
-		renderer.gammaInput = true; 
-		renderer.gammaOutput = true; 
-		document.body.appendChild( renderer.domElement );
-	}
-
-
-	function initModels() {
-
-		loader = new THREE.JSONLoader();
-
-		for (var i = 0; i < assetIDs.length; i++) {
-
-			loadAsset(assetIDs[i], i); 
-		}
-	}
-
-
-	function loadAsset( id, index ) {
-
-		var filename = "../models/" + id + ".js"; 
-
-		loader.load(filename, function ( geometry, materials ) {
-
-			morphColorsToFaceColors(geometry);
-      		geometry.computeMorphNormals();
-
-      		var material = new THREE.MeshPhongMaterial({
-      			color: 0xffffff, 
-      			shininess: 30, 
-      			morphTargets: true, 
-      			morphNormals: true, 
-      			vertexColors: THREE.FaceColors, 
-      			shading: THREE.FlatShading
-      		});
-
-			var mesh; 
-
-
-			mesh = new THREE.MorphBlendMesh(geometry, material); 
-
-
-			mesh.name = id; 
-			Core.addCursorObject( mesh, true ); 
-
-			var mixer = new THREE.AnimationMixer( mesh ); 
-
-			var clip = THREE.AnimationClip.CreateFromMorphTargetSequence( 'run', geometry.morphTargets, 30 );
-			mixer.clipAction( clip ).setDuration( 1 ).play();
-
-			mixers.push( mixer ); 
-
-			mesh.position.set( index, index, index ); 
-			mesh.scale.set( 0.005, 0.005, 0.005 ); 
-		});
-	}
-
-
-	function morphColorsToFaceColors(geometry) {
-
-		if (geometry.morphColors && geometry.morphColors.length) {
-
-			var colorMap = geometry.morphColors[0];
-
-			for (var i = 0; i < colorMap.colors.length; i++) {
-
-				geometry.faces[i].color = colorMap.colors[i];
-			}
 		}
 	}
 
@@ -258,6 +60,7 @@ var Core = function() {
 				if ( document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element ) {
 
 					if ( player ) {
+						Controls.setEnabled( true ); 
 						player.setEnabled( true ); 
 					}
 
@@ -266,6 +69,7 @@ var Core = function() {
 				} else {
 
 					if ( player ) {
+						Controls.setEnabled( false ); 
 						player.setEnabled( false ); 
 					}
 
@@ -311,24 +115,23 @@ var Core = function() {
 
 	function update() {
 
-		if ( player && renderer ) {
+		if ( player ) {
+
+			Controls.update(); 
 
 			var delta = clock.getDelta(); 
 
-			for ( var i = 0; i < mixers.length; i++ ) {
-
-				mixers[i].update( delta ); 
-
-			}
-
-
 			player.update(); 
 
+/*
 			if ( isWebVR ) {
-				effect.render( scene, camera ); 
+				effect.render( Scene.getScene(), Scene.getCamera() ); 
 			} else {
-				renderer.render( scene, camera );
+				renderer.render( Scene.getScene(), Scene.getCamera() );
 			}
+*/
+
+			Scene.update( delta ); 
 
 			return getUpdateData(); 
 		}
@@ -339,14 +142,14 @@ var Core = function() {
 
 	function onWindowResize() {
 
-		camera.aspect = window.innerWidth / window.innerHeight;
-		camera.updateProjectionMatrix();
+		Scene.getCamera().aspect = window.innerWidth / window.innerHeight;
+		Scene.getCamera().updateProjectionMatrix();
 
-		if ( isWebVR ) {
+		/*if ( isWebVR ) {
 			effect.setSize( window.innerWidth, window.innerHeight );
-		} else {
-			renderer.setSize( window.innerWidth, window.innerHeight );
-		}
+		} else {*/
+			Scene.setSize( window.innerWidth, window.innerHeight );
+		//}
 	}
 
 
@@ -354,7 +157,9 @@ var Core = function() {
 
 		console.log("CREATING LOCAL PLAYER: " + data.id + " " + data.isFirst); 
 
-		player = new Player( data.id, true, data.isFirst, isWebVR, camera, scene ); 
+		player = new Player( data.id, true, data.isFirst, isWebVR, Scene.getCamera(), Scene.getScene() ); 
+
+		Controls.init( Scene.getCamera(), Scene.getScene(), isWebVR, data.isFirst ? 1.8 : 0.18 ); 
 	}
 
 
@@ -388,11 +193,9 @@ var Core = function() {
 
 		console.log("CREATING OTHER PLAYER: " + data.id + " " + data.isFirst); 
 
-		var otherPlayer = new Player( data.id, false, data.isFirst, false, camera, scene ); 
+		var otherPlayer = new Player( data.id, false, data.isFirst, false, Scene.getCamera(), Scene.getScene() ); 
 
 	    otherPlayers[ data.id ] = otherPlayer;
-
-	    scene.add( otherPlayer.mesh );
 
 	    return otherPlayer; 
 
@@ -401,7 +204,7 @@ var Core = function() {
 
 	function removeOtherPlayer( id ) {
 
-	    scene.remove( otherPlayers[ id ].mesh );
+	    Scene.getScene().remove( otherPlayers[ id ].mesh );
 
 	    delete otherPlayers[ id ]; 
 	}
@@ -412,7 +215,12 @@ var Core = function() {
 
 		if ( player ) {
 
-			return player.getUpdateData(); 
+			var data = player.getUpdateData(); 
+			data.pos = Controls.getPosition(); 
+			data.dir = Controls.getDirection(); 
+			data.drag = [ SphericalCursor.getDraggedObjectData() ]; 
+			data.light = getSpotLightState(); 
+			return data; 
 		}
 
 		return null; 
@@ -423,7 +231,12 @@ var Core = function() {
 
 		if ( player ) {
 
-			return player.getAllData(); 
+			var data = player.getAllData(); 
+			data.pos = Controls.getPosition(); 
+			data.dir = Controls.getDirection(); 
+			data.drag = /*Core.*/getDraggableObjectData(); 
+			data.light = getSpotLightState(); 
+			return data; 
 		}
 
 		return null; 
@@ -435,11 +248,6 @@ var Core = function() {
 	}
 
 
-	function getSceneObjects() {
-		return cursorObjects; 
-	}
-
-
 	function addCursorObject( object, isDraggable ) {
 
 		if ( isDraggable ) {
@@ -447,7 +255,7 @@ var Core = function() {
 			draggableObjects.push( object ); 
 		}
 
-		scene.add( object ); 
+		Scene.getScene().add( object ); 
 		cursorObjects.push( object ); 
 	}
 
@@ -468,27 +276,97 @@ var Core = function() {
 	}
 
 
-	function changePainterThickness( direction ) {
-		player.changePainterThickness( direction ); 
+	var canToggle = true; 
+	function toggleSpotlight() {
+		if ( !canToggle ) {
+			return; 
+		}
+
+		Scene.getSpotLight().intensity = getSpotLightState() ? 1 : 0; 
+		canToggle = false; 
+
+		setTimeout( function( ) { 
+			canToggle = true; 
+		}, 1000);
 	}
+
+
+	function getSpotLightState() {
+		return Scene.getSpotLight().intensity == 0;
+	}
+
+	function setSpotLight( bool ) {
+		Scene.getSpotLight().intensity = bool ? 1 : 0; 
+	}
+
+
+
+	function onMouseDown( event ) {
+
+		if ( event.button == 0 ) {
+
+			player.setLeftMouseDown( true ); 
+
+		} else if ( event.button == 1 ) {
+
+			middleMouseDown = true;  
+
+		} else if ( event.button == 2 ) {
+
+			SphericalCursor.setRightMouseDown( true ); 
+
+		}
+	}
+
+
+	function onMouseUp( event ) {
+
+		if ( event.button == 0 ) {
+
+			player.setLeftMouseDown( false ); 
+
+		} else if ( event.button == 1 ) {
+
+			middleMouseDown = false; 
+
+		} else if ( event.button == 2 ) {
+
+			SphericalCursor.setRightMouseDown( false ); 
+		}
+	}
+
+
+	function onScroll( event ){
+
+		var direction = ( event.detail < 0 || event.wheelDelta > 0 ) ? 1 : -1;
+
+		if ( middleMouseDown ) {
+
+			player.changePainterThickness( direction ); 
+
+		} else {
+
+			SphericalCursor.updateCurrentDistance( direction ); 
+		}
+	}
+
 
 
 
 	return {
 		init: init, 
-		update: update, 
 		createPlayer: createPlayer, 
 		addOtherPlayer: addOtherPlayer, 
 		removeOtherPlayer: removeOtherPlayer,
+		update: update, 
 		updateFromNetwork: updateFromNetwork, 
 		updateAllFromNetwork: updateAllFromNetwork, 
 		getAllData: getAllData,
 
 		getCursorObjects: getCursorObjects, 
-		getSceneObjects: getSceneObjects, 
 		addCursorObject: addCursorObject, 
-		getDraggableObjectData: getDraggableObjectData, 
-		changePainterThickness: changePainterThickness
+		toggleSpotlight: toggleSpotlight, 
+		setSpotLight: setSpotLight
 	}; 
 
 }(); 

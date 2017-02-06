@@ -59,6 +59,7 @@ var Controls = function() {
 		if ( isWebVR ) {
 
 		} else {
+			
 			return DesktopControls.getDirection(); 	
 		}
 	}

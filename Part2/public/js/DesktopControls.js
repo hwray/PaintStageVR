@@ -118,7 +118,7 @@ var DesktopControls = function() {
 
 		raycaster.ray.origin.copy( yawObject.position );
 		//raycaster.ray.origin.y -= height;
-		var intersects = raycaster.intersectObjects( Core.getSceneObjects(), true );
+		var intersects = raycaster.intersectObjects( Core.getCursorObjects(), true );
 
 		if ( intersects.length > 0 ) {
 			// Object intersected - we are on the ground
@@ -237,6 +237,7 @@ var DesktopControls = function() {
 	function getPosition() {
 		return yawObject.position; 
 	}
+
 
 	function getDirection() {
 

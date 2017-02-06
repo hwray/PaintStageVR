@@ -1,5 +1,9 @@
 function Painter( scene, isLocal ) {
+
+	// Constants
+	var COLORS = [ 	0xff00ff, 0xff0000, 0x00ffff ]; 
 	
+	// Globals
 	var line;
 	var shapes = { };
 	var up = new THREE.Vector3( 0, 1, 0 );
@@ -28,10 +32,19 @@ function Painter( scene, isLocal ) {
 	var color = new THREE.Color( colorHex ); 
 
 
-	init( scene, isLocal ); 
+	// Init
+	
+	initLine( scene ); 
+
+	createTubeShape( thickness ); 
+
+	if ( isLocal ) {
+		initColorPalette(); 
+	}
 
 
-	function init( scene, isLocal ) {
+
+	function initLine( scene ) {
 
 		var geometry = new THREE.BufferGeometry();
 		var positions = new THREE.BufferAttribute( new Float32Array( 1000000 * 3 ), 3 );
@@ -44,18 +57,6 @@ function Painter( scene, isLocal ) {
 		colors.dynamic = true;
 		geometry.addAttribute( 'color', colors );
 		geometry.drawRange.count = 0;
-
-		//
-		/*
-		var path = "textures/cube/SwedishRoyalCastle/";
-		var format = '.jpg';
-		var urls = [
-			path + 'px' + format, path + 'nx' + format,
-			path + 'py' + format, path + 'ny' + format,
-			path + 'pz' + format, path + 'nz' + format
-		];
-		var reflectionCube = new THREE.CubeTextureLoader().load( urls );
-		*/
 
 		var material = new THREE.MeshStandardMaterial( {
 			roughness: 0.9,
@@ -71,24 +72,6 @@ function Painter( scene, isLocal ) {
 		line.receiveShadow = true;
 
 		scene.add( line );
-
-		createTubeShape( thickness ); 
-
-		// Add color palette pickers
-		if ( isLocal ) {
-			var colors = [ 	0xff00ff, 0xff0000, 0x00ffff ]; 
-
-			for ( var i = 0; i < colors.length; i++ ) {
-				var geometry = new THREE.BoxGeometry( 0.2, 0.2, 0.2 );
-				var material = new THREE.MeshBasicMaterial( { color: colors[i] } );
-				var cube = new THREE.Mesh( geometry, material );
-				cube.position.set( 0 + i, 2, -3); 
-				cube.userData.isColorPalette = true; 
-				cube.userData.color = colors[i]; 
-				cube.name = "palette" + colors[i]; 
-				Core.addCursorObject( cube, true ); 
-			}
-		}
 	}
 
 
@@ -106,6 +89,23 @@ function Painter( scene, isLocal ) {
 		shapes[ "" + thickness ] = array;
 
 		return array; 
+	}
+
+
+	function initColorPalette() {
+
+		// Add color palette pickers
+
+		for ( var i = 0; i < COLORS.length; i++ ) {
+			var geometry = new THREE.BoxGeometry( 0.2, 0.2, 0.2 );
+			var material = new THREE.MeshBasicMaterial( { color: COLORS[i] } );
+			var cube = new THREE.Mesh( geometry, material );
+			cube.position.set( 0 + i, 2, -3); 
+			cube.userData.isColorPalette = true; 
+			cube.userData.color = COLORS[i]; 
+			cube.name = "palette" + COLORS[i]; 
+			Core.addCursorObject( cube, true ); 
+		}
 	}
 
 

@@ -1,7 +1,6 @@
-function Player( inId, isLocalPlayer, inIsFirst, inIsWebVR, camera, inScene ) {
+function Player( inId, isLocal, inIsFirst, inIsWebVR, camera, inScene ) {
 	
 	// Globals
-	var isLocal; 
 	var isWebVR; 
 	var mesh; 
 	var id; 
@@ -18,18 +17,14 @@ function Player( inId, isLocalPlayer, inIsFirst, inIsWebVR, camera, inScene ) {
 	var isFirst; 
 
 
-	// Events
-	window.addEventListener( 'mousedown', onMouseDown, false ); 
-	window.addEventListener( 'mouseup', onMouseUp, false ); 
 
 
-	init( inId, isLocalPlayer, inIsFirst, inIsWebVR, camera, inScene ); 
+	init( inId, isLocal, inIsFirst, inIsWebVR, camera, inScene ); 
 
 
-	function init( inId, isLocalPlayer, inIsFirst, inIsWebVR, camera, inScene ) {
+	function init( inId, isLocal, inIsFirst, inIsWebVR, camera, inScene ) {
 
 		id = inId; 
-		isLocal = isLocalPlayer; 
 		isWebVR = inIsWebVR; 
 
 		isEnabled = false; 
@@ -41,11 +36,7 @@ function Player( inId, isLocalPlayer, inIsFirst, inIsWebVR, camera, inScene ) {
 		size = isFirst ? 0.3 : 0.03; 
 		height = isFirst ? 1.8 : 0.18; 
 
-		if ( isLocal ) {
-
-			Controls.init( camera, scene, isWebVR, height ); 
-
-		} else {
+		if ( !isLocal ) {
 
 			initMesh(); 
 		}
@@ -63,19 +54,23 @@ function Player( inId, isLocalPlayer, inIsFirst, inIsWebVR, camera, inScene ) {
    		mesh.rotation.set( 0, 0, 0 );
 
    		mesh.position.set( 0, 0, 0 ); 
+
+   		scene.add( mesh ); 
 	}
 
 
 	function update() {
 
-		if ( isEnabled && isLocal ) {
-
-			Controls.update(); 
+		if ( isEnabled ) {
 
 			var intersect = SphericalCursor.getIntersect(); 
 
-			if ( intersect && intersect.object.userData.isColorPalette && leftMouseDown ) {
-				painter.setColor( SphericalCursor.getIntersect().object.userData.color ); 
+			if ( intersect && leftMouseDown ) {
+				if ( intersect.object.userData.isColorPalette ) {
+					painter.setColor( SphericalCursor.getIntersect().object.userData.color ); 
+				} else if ( intersect.object.userData.isSpotLightControl ) {
+					Core.toggleSpotlight(); 
+				}
 			}
 
 			if ( leftMouseDown ) {
@@ -103,7 +98,6 @@ function Player( inId, isLocalPlayer, inIsFirst, inIsWebVR, camera, inScene ) {
 	    }
 
 
-
     	for ( var i = 0; i < data.drag.length; i++ ) {
 
     		var drag = data.drag[i]; 
@@ -115,12 +109,13 @@ function Player( inId, isLocalPlayer, inIsFirst, inIsWebVR, camera, inScene ) {
 		    	dragObj.position.copy( drag.pos ); 
 		    }
 	    }
+
+	    Core.setSpotLight( data.light ); 
 	}
 
 
 	function setEnabled( bool ) {
 		isEnabled = bool; 
-		Controls.setEnabled( bool ); 
 	}
 
 
@@ -128,10 +123,7 @@ function Player( inId, isLocalPlayer, inIsFirst, inIsWebVR, camera, inScene ) {
 
 		var data = {
 			id: id, 
-			pos: isLocal ? Controls.getPosition() : mesh.position,
-			dir: isLocal ? Controls.getDirection() : mesh.rotation, 
-			strokes: isLocal ? painter.getUpdateData() : [ ], 
-			drag: isLocal ? [ SphericalCursor.getDraggedObjectData() ] : [ ]
+			strokes: painter.getUpdateData()
 		}; 
 
 		return data; 
@@ -143,48 +135,10 @@ function Player( inId, isLocalPlayer, inIsFirst, inIsWebVR, camera, inScene ) {
 		var data = {
 			id: id, 
 			isFirst: isFirst,
-			pos: isLocal ? Controls.getPosition() : mesh.position,
-			dir: isLocal ? Controls.getDirection() : mesh.rotation, 
-			strokes: isLocal ? painter.getAllData() : [ ],
-			drag: isLocal ? Core.getDraggableObjectData() : [ ]
+			strokes: painter.getAllData()
 		}
 
 		return data; 
-	}
-
-
-	function onMouseDown( event ) {
-
-		if ( event.button == 0 ) {
-
-			leftMouseDown = true; 
-
-		} else if ( event.button == 1 ) {
-
-			SphericalCursor.setMiddleMouseDown( true ); 
-
-		} else if ( event.button == 2 ) {
-
-			SphericalCursor.setRightMouseDown( true ); 
-
-		}
-	}
-
-
-	function onMouseUp( event ) {
-
-		if ( event.button == 0 ) {
-
-			leftMouseDown = false; 
-
-		} else if ( event.button == 1 ) {
-
-			SphericalCursor.setMiddleMouseDown( false ); 
-
-		} else if ( event.button == 2 ) {
-
-			SphericalCursor.setRightMouseDown( false ); 
-		}
 	}
 
 
@@ -193,14 +147,19 @@ function Player( inId, isLocalPlayer, inIsFirst, inIsWebVR, camera, inScene ) {
 	}
 
 
+	function setLeftMouseDown( bool ) {
+		leftMouseDown = bool; 
+	}
+
+
 	return {
+		id: id, 
 		update: update, 
-		mesh: mesh, 
 		setEnabled: setEnabled, 
 		updateFromNetwork: updateFromNetwork,
 		getUpdateData: getUpdateData, 
 		getAllData: getAllData, 
-		id: id, 
-		changePainterThickness: changePainterThickness
+		changePainterThickness: changePainterThickness, 
+		setLeftMouseDown: setLeftMouseDown
 	}; 
 }

@@ -21,13 +21,10 @@ var SphericalCursor = function() {
 	var camera; 
 
 	var rightMouseDown = false; 
-	var middleMouseDown = false; 
 	var dragObject = null; 
 
 	// Events
 	window.addEventListener( "mousemove", onMouseMove );
-	window.addEventListener( "DOMMouseScroll", onScroll, false ); // for Firefox
-	window.addEventListener( "mousewheel",    onScroll, false ); // for everyone else
 
 
 
@@ -213,32 +210,10 @@ var SphericalCursor = function() {
 	}
 
 
-	function onScroll( event ){
-
-		var direction = ( event.detail < 0 || event.wheelDelta > 0 ) ? 1 : -1;
-
-		if ( middleMouseDown ) {
-
-			Core.changePainterThickness( direction ); 
-
-		} else {
-
-			currDistance += direction * SCROLL_WHEEL_SENSITIVITY; 
-
-			currDistance = Math.min( Math.max( currDistance, MIN_CURSOR_DISTANCE ), MAX_CURSOR_DISTANCE )
-
-			raycaster.far = currDistance; 
-		}
-	}
-
-
 	function setRightMouseDown( bool ) {
 		rightMouseDown = bool;
 	}
 
-	function setMiddleMouseDown( bool ) {
-		middleMouseDown = bool; 
-	}
 
 
 	function setEnabled( bool ) {
@@ -276,6 +251,16 @@ var SphericalCursor = function() {
 	}
 
 
+	function updateCurrentDistance( direction ) {
+
+		currDistance += direction * SCROLL_WHEEL_SENSITIVITY; 
+
+		currDistance = Math.min( Math.max( currDistance, MIN_CURSOR_DISTANCE ), MAX_CURSOR_DISTANCE )
+
+		raycaster.far = currDistance; 
+	}
+
+
 	return {
 		init: init,
 		update: update, 
@@ -283,9 +268,9 @@ var SphericalCursor = function() {
 		getCursor: getCursor, 
 		getIntersect: getIntersect, 
 		setRightMouseDown: setRightMouseDown, 
-		setMiddleMouseDown: setMiddleMouseDown,
 		getDraggedObjectData: getDraggedObjectData, 
-		setColor: setColor
+		setColor: setColor, 
+		updateCurrentDistance: updateCurrentDistance
 	};
 
 }();
