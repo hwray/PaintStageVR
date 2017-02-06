@@ -10,6 +10,15 @@ var Core = function() {
 	var cursorObjects = [ ]; 
 	var draggableObjects = [ ]; 
 	var isWebVR = false; 
+	var loader; 
+	var assetIDs = [ 
+		//"parrot",
+		//"stork", 
+		"fox"//, 
+		//"horse"
+	]; 
+	var clock = new THREE.Clock(); 
+	var mixer; 
 
 
 	// Events
@@ -23,6 +32,8 @@ var Core = function() {
 		initGeometry(); 
 
 		initRenderer(); 
+
+		initModels(); 
 
 		initPointerLockEvents(); 
 
@@ -160,6 +171,76 @@ var Core = function() {
 	}
 
 
+	function initModels() {
+
+		loader = new THREE.JSONLoader();
+
+		for (var i = 0; i < assetIDs.length; i++) {
+
+			loadAsset(assetIDs[i], i); 
+		}
+	}
+
+
+	function loadAsset( id, index ) {
+
+		var filename = "../models/" + id + ".js"; 
+
+		loader.load(filename, function ( geometry, materials ) {
+
+			morphColorsToFaceColors(geometry);
+      		geometry.computeMorphNormals();
+
+      		var material = new THREE.MeshPhongMaterial({
+      			color: 0xffffff, 
+      			shininess: 30, 
+      			morphTargets: true, 
+      			morphNormals: true, 
+      			vertexColors: THREE.FaceColors, 
+      			shading: THREE.FlatShading
+      		});
+
+			var mesh; 
+
+			//var hasAnimation = true; 
+
+			//if (hasAnimation) {
+
+			mesh = new THREE.MorphBlendMesh(geometry, material); 
+
+			//} else {
+
+			//	mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(material));
+
+			//}
+
+			scene.add( mesh ); 
+
+			mixer = new THREE.AnimationMixer( mesh ); 
+
+			var clip = THREE.AnimationClip.CreateFromMorphTargetSequence( 'run', geometry.morphTargets, 30 );
+			mixer.clipAction( clip ).setDuration( 1 ).play();
+
+			mesh.position.set( 1, 1, 1 ); 
+			mesh.scale.set( 0.005, 0.005, 0.005 ); 
+		});
+	}
+
+
+	function morphColorsToFaceColors(geometry) {
+
+		if (geometry.morphColors && geometry.morphColors.length) {
+
+			var colorMap = geometry.morphColors[0];
+
+			for (var i = 0; i < colorMap.colors.length; i++) {
+
+				geometry.faces[i].color = colorMap.colors[i];
+			}
+		}
+	}
+
+
 	function initPointerLockEvents() {
 		var blocker = document.getElementById( 'blocker' );
 		var instructions = document.getElementById( 'instructions' );
@@ -232,6 +313,13 @@ var Core = function() {
 
 		if ( player && renderer ) {
 
+			if ( mixer ) {
+
+				mixer.update( ( clock.getDelta() ) ); 
+
+			}
+
+
 			player.update(); 
 
 			if ( isWebVR ) {
@@ -260,9 +348,11 @@ var Core = function() {
 	}
 
 
-	function createPlayer( id ) {
+	function createPlayer( data ) {
 
-		player = new Player( id, true, isWebVR, camera, scene ); 
+		console.log("CREATING LOCAL PLAYER: " + data.id + " " + data.isFirst); 
+
+		player = new Player( data.id, true, data.isFirst, isWebVR, camera, scene ); 
 	}
 
 
@@ -280,24 +370,25 @@ var Core = function() {
 
 	function updateAllFromNetwork( data ) {
 
-		var otherPlayer = addOtherPlayer( data.id ); 
+		var otherPlayer = addOtherPlayer( data ); 
 
-		otherPlayer.updateFromNetwork( data ); 
-
+		if ( otherPlayer ) {
+			otherPlayer.updateFromNetwork( data ); 
+		}
 	}
 
 
-	function addOtherPlayer( id ) {
+	function addOtherPlayer( data ) {
 
-		if ( !id || player && player.id == id ) {
+		if ( !data.id || player && player.id == data.id ) {
 			return; 
 		} 
 
-		console.log("CREATING OTHER PLAYER: " + id); 
+		console.log("CREATING OTHER PLAYER: " + data.id + " " + data.isFirst); 
 
-		var otherPlayer = new Player( id, false, false, camera, scene ); 
+		var otherPlayer = new Player( data.id, false, data.isFirst, false, camera, scene ); 
 
-	    otherPlayers[ id ] = otherPlayer;
+	    otherPlayers[ data.id ] = otherPlayer;
 
 	    scene.add( otherPlayer.mesh );
 

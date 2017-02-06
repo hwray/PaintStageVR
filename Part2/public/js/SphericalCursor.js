@@ -7,6 +7,8 @@ var SphericalCursor = function() {
 	var HIGHLIGHT_COLOR = 0x66ffff; 				// highlight tint for objects selected with cursor
 	var DEFAULT_COLOR = 0xfffffff; 					// default object tint
 	var SCROLL_WHEEL_SENSITIVITY = 0.25; 
+	var MAX_CURSOR_DISTANCE = 20; 
+	var MIN_CURSOR_DISTANCE = 0.5
 
 	// Globals
 	var enabled = false						// controls whether the cursor is active
@@ -213,6 +215,9 @@ var SphericalCursor = function() {
 		var direction = ( event.detail < 0 || event.wheelDelta > 0 ) ? 1 : -1;
 		
 		maxDistance += direction * SCROLL_WHEEL_SENSITIVITY; 
+
+		maxDistance = Math.min( Math.max( maxDistance, MIN_CURSOR_DISTANCE ), MAX_CURSOR_DISTANCE )
+
 		raycaster.far = maxDistance; 
 
 	}

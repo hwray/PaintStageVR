@@ -79,7 +79,7 @@ function Painter( scene, isLocal ) {
 
 		shapes[ 'tube' ] = array;
 
-
+		// Add color palette pickers
 		if ( isLocal ) {
 			var colors = [ 	0xff00ff, 0xff0000, 0x00ffff ]; 
 

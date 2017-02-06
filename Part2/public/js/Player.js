@@ -1,9 +1,5 @@
-function Player( inId, isLocalPlayer, inIsWebVR, camera, inScene ) {
+function Player( inId, isLocalPlayer, inIsFirst, inIsWebVR, camera, inScene ) {
 	
-	// Constants
-	var SIZE = 0.3; 
-	var HEIGHT = 1.8; 
-
 	// Globals
 	var isLocal; 
 	var isWebVR; 
@@ -12,9 +8,14 @@ function Player( inId, isLocalPlayer, inIsWebVR, camera, inScene ) {
 	var isEnabled; 
 	var leftMouseDown = false; 
 
+	var size = 0.3; 
+	var height = 1.8; 
+
 	var scene; 
 
 	var painter; 
+
+	var isFirst; 
 
 
 	// Events
@@ -22,10 +23,10 @@ function Player( inId, isLocalPlayer, inIsWebVR, camera, inScene ) {
 	window.addEventListener( 'mouseup', onMouseUp, false ); 
 
 
-	init( inId, isLocalPlayer, inIsWebVR, camera, inScene ); 
+	init( inId, isLocalPlayer, inIsFirst, inIsWebVR, camera, inScene ); 
 
 
-	function init( inId, isLocalPlayer, inIsWebVR, camera, inScene ) {
+	function init( inId, isLocalPlayer, inIsFirst, inIsWebVR, camera, inScene ) {
 
 		id = inId; 
 		isLocal = isLocalPlayer; 
@@ -33,11 +34,16 @@ function Player( inId, isLocalPlayer, inIsWebVR, camera, inScene ) {
 
 		isEnabled = false; 
 
+		isFirst = inIsFirst; 
+
 		scene = inScene; 
+
+		size = isFirst ? 0.3 : 0.03; 
+		height = isFirst ? 1.8 : 0.18; 
 
 		if ( isLocal ) {
 
-			Controls.init( camera, scene, isWebVR, HEIGHT ); 
+			Controls.init( camera, scene, isWebVR, height ); 
 
 		} else {
 
@@ -50,7 +56,7 @@ function Player( inId, isLocalPlayer, inIsWebVR, camera, inScene ) {
 
 	function initMesh() {
 
-		var geometry = new THREE.BoxGeometry( SIZE, SIZE, SIZE );
+		var geometry = new THREE.BoxGeometry( size, size, size );
    		var material = new THREE.MeshBasicMaterial( { color: 0x7777ff, wireframe: false } );
    		mesh = new THREE.Mesh( geometry, material );
 
@@ -136,6 +142,7 @@ function Player( inId, isLocalPlayer, inIsWebVR, camera, inScene ) {
 
 		var data = {
 			id: id, 
+			isFirst: isFirst,
 			pos: isLocal ? Controls.getPosition() : mesh.position,
 			dir: isLocal ? Controls.getDirection() : mesh.rotation, 
 			strokes: isLocal ? painter.getAllData() : [ ],
