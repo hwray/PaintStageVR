@@ -95,6 +95,13 @@ function Player( inId, isLocalPlayer, inIsWebVR, camera, inScene ) {
 
 	    	painter.updateFromNetwork( stroke ); 
 	    }
+
+	    if ( data.drag ) {
+
+		    var drag = scene.getObjectByName( data.drag.name, true ); 
+
+		    drag.position.copy( data.drag.pos ); 
+		}
 	}
 
 
@@ -110,7 +117,8 @@ function Player( inId, isLocalPlayer, inIsWebVR, camera, inScene ) {
 			id: id, 
 			pos: isLocal ? Controls.getPosition() : mesh.position,
 			dir: isLocal ? Controls.getDirection() : mesh.rotation, 
-			strokes: isLocal ? painter.getNewStrokes() : [ ]
+			strokes: isLocal ? painter.getNewStrokes() : [ ], 
+			drag: SphericalCursor.getDraggedObjectData()
 		}; 
 
 		return data; 

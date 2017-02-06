@@ -240,6 +240,19 @@ var SphericalCursor = function() {
 		return hit; 
 	}
 
+	function getDraggedObjectData() {
+
+		if ( dragObject ) {
+
+			return {
+				name: dragObject.name, 
+				pos: dragObject.position.clone()
+			}; 
+		}
+
+		return null; 
+	}
+
 
 	return {
 		init: init,
@@ -247,7 +260,8 @@ var SphericalCursor = function() {
 		setEnabled: setEnabled, 
 		getCursor: getCursor, 
 		getIntersect: getIntersect, 
-		setRightMouseDown: setRightMouseDown
+		setRightMouseDown: setRightMouseDown, 
+		getDraggedObjectData: getDraggedObjectData
 	};
 
 }();

@@ -86,6 +86,7 @@ var Core = function() {
 		lightCube.add( light ); 
 
 		lightCube.userData.draggable = true; 
+		lightCube.name = "lightCube"; 
 
 		Core.addCursorObject( lightCube ); 
 
