@@ -2,11 +2,11 @@ var SphericalCursor = function() {
 
 	// CONSTANTS
 	var SENSITIVITY = 5000;              			// to adjust how sensitive the mouse control is
-	var DISTANCE_SCALE_FACTOR = -0.1;  			// to scale down the cursor based on its collision distance
-	var DEFAULT_CURSOR_SCALE = 0.5;     				// scale to set the cursor if no raycast hit is found
+	var DISTANCE_SCALE_FACTOR = -0.3;  			// to scale down the cursor based on its collision distance
+	var DEFAULT_CURSOR_SCALE = 0.1;     				// scale to set the cursor if no raycast hit is found
 	var HIGHLIGHT_COLOR = 0x66ffff; 				// highlight tint for objects selected with cursor
 	var DEFAULT_COLOR = 0xfffffff; 					// default object tint
-	var SCROLL_WHEEL_SENSITIVITY = 0.5; 
+	var SCROLL_WHEEL_SENSITIVITY = 0.25; 
 
 	// Globals
 	var enabled = false						// controls whether the cursor is active
@@ -14,7 +14,7 @@ var SphericalCursor = function() {
 	var hit = null; 								// tracks the current object being intersected by the cursor
 	var raycaster = new THREE.Raycaster();			// raycaster for getting intersects
 	var cursor; 
-	var maxDistance = 50;             			// maximum distance to raycast
+	var maxDistance = 10;             			// maximum distance to raycast
 	raycaster.far = maxDistance;  					// set max distance to raycast
 	var camera; 
 
@@ -35,14 +35,12 @@ var SphericalCursor = function() {
 		// cursor
 		cursor = new THREE.Mesh(
 			new THREE.SphereGeometry( 1.0 ),
-			new THREE.MeshPhongMaterial( { color: "#FF0000" } )
+			new THREE.MeshPhongMaterial( { color: "#00FFFF" } )
 		);
 		cursor.name = "cursor";
 		scene.add( cursor );
 
 		// So cursor appears on top
-		//floor.renderOrder = 0;
-		//ceiling.renderOrder = 0;
 		cursor.renderOrder = 1;
 		cursor.material.depthTest = false;
 
@@ -240,6 +238,7 @@ var SphericalCursor = function() {
 		return hit; 
 	}
 
+
 	function getDraggedObjectData() {
 
 		if ( dragObject ) {
@@ -254,6 +253,11 @@ var SphericalCursor = function() {
 	}
 
 
+	function setColor( colorHex ) {
+		cursor.material.color.setHex( colorHex ); 
+	}
+
+
 	return {
 		init: init,
 		update: update, 
@@ -261,7 +265,8 @@ var SphericalCursor = function() {
 		getCursor: getCursor, 
 		getIntersect: getIntersect, 
 		setRightMouseDown: setRightMouseDown, 
-		getDraggedObjectData: getDraggedObjectData
+		getDraggedObjectData: getDraggedObjectData, 
+		setColor: setColor
 	};
 
 }();

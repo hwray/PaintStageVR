@@ -18,6 +18,26 @@ var Client = function() {
 	});
 
 
+	socket.on( 'getAllData', function( id ) {
+		console.log("GETTING ALL DATA TO GIVE TO NEWER CLIENT"); 
+
+	    var data = Core.getAllData();
+
+	    data.requesterId = id; 
+
+	    socket.emit( 'allData', data ); 
+	});
+
+
+	socket.on( 'giveAllData', function( data ) {
+		console.log("GETTING ALL DATA IN FROM OLDER CLIENT"); 
+
+		Core.updateAllFromNetwork( data ); 
+
+	    console.log(data); 
+	});
+
+
 	socket.on( 'update', function( data ) {
 		console.log("UPDATING FROM NETWORK"); 
 	    Core.updateFromNetwork( data );

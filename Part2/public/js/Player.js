@@ -68,7 +68,7 @@ function Player( inId, isLocalPlayer, inIsWebVR, camera, inScene ) {
 
 			var intersect = SphericalCursor.getIntersect(); 
 
-			if ( intersect && intersect.object.userData.isColorPalette ) {
+			if ( intersect && intersect.object.userData.isColorPalette && leftMouseDown ) {
 				painter.setColor( SphericalCursor.getIntersect().object.userData.color ); 
 			}
 
@@ -96,12 +96,19 @@ function Player( inId, isLocalPlayer, inIsWebVR, camera, inScene ) {
 	    	painter.updateFromNetwork( stroke ); 
 	    }
 
-	    if ( data.drag ) {
 
-		    var drag = scene.getObjectByName( data.drag.name, true ); 
 
-		    drag.position.copy( data.drag.pos ); 
-		}
+    	for ( var i = 0; i < data.drag.length; i++ ) {
+
+    		var drag = data.drag[i]; 
+
+    		if (drag) {
+
+		    	var dragObj = scene.getObjectByName( drag.name, true ); 
+
+		    	dragObj.position.copy( drag.pos ); 
+		    }
+	    }
 	}
 
 
@@ -111,15 +118,29 @@ function Player( inId, isLocalPlayer, inIsWebVR, camera, inScene ) {
 	}
 
 
-	function getData() {
+	function getUpdateData() {
 
 		var data = {
 			id: id, 
 			pos: isLocal ? Controls.getPosition() : mesh.position,
 			dir: isLocal ? Controls.getDirection() : mesh.rotation, 
-			strokes: isLocal ? painter.getNewStrokes() : [ ], 
-			drag: SphericalCursor.getDraggedObjectData()
+			strokes: isLocal ? painter.getUpdateData() : [ ], 
+			drag: isLocal ? [ SphericalCursor.getDraggedObjectData() ] : [ ]
 		}; 
+
+		return data; 
+	}
+
+
+	function getAllData() {
+
+		var data = {
+			id: id, 
+			pos: isLocal ? Controls.getPosition() : mesh.position,
+			dir: isLocal ? Controls.getDirection() : mesh.rotation, 
+			strokes: isLocal ? painter.getAllData() : [ ],
+			drag: isLocal ? Core.getDraggableObjectData() : [ ]
+		}
 
 		return data; 
 	}
@@ -151,19 +172,13 @@ function Player( inId, isLocalPlayer, inIsWebVR, camera, inScene ) {
 	}
 
 
-	function getLine() {
-		return line; 
-	}
-
-
-
 	return {
 		update: update, 
 		mesh: mesh, 
 		setEnabled: setEnabled, 
 		updateFromNetwork: updateFromNetwork,
-		getData: getData, 
-		id: id, 
-		getLine: getLine
+		getUpdateData: getUpdateData, 
+		getAllData: getAllData, 
+		id: id
 	}; 
 }

@@ -17,6 +17,7 @@ function Painter( scene, isLocal ) {
 	var matrix1 = new THREE.Matrix4(); 
 	var matrix2 = new THREE.Matrix4(); 
 
+	var allStrokes = [ ]; 
 	var newStrokes = [ ]; 
 
 	var colorHex = 0x00ffff; 
@@ -89,9 +90,8 @@ function Painter( scene, isLocal ) {
 				cube.position.set( 0 + i, 2, -3); 
 				cube.userData.isColorPalette = true; 
 				cube.userData.color = colors[i]; 
-				cube.userData.draggable = true; 
 				cube.name = "palette" + colors[i]; 
-				Core.addCursorObject( cube ); 
+				Core.addCursorObject( cube, true ); 
 			}
 		}
 	}
@@ -222,16 +222,25 @@ function Painter( scene, isLocal ) {
 	function setColor( inColorHex ) {
 		colorHex = inColorHex; 
 		color.set( colorHex ); 
+		SphericalCursor.setColor( colorHex ); 
 	}
 
 
-	function getNewStrokes() {
+	function getUpdateData() {
 
 		var result = newStrokes.slice(); 
+
+		allStrokes = allStrokes.concat( newStrokes ); 
 
 		newStrokes = [ ]; 
 
 		return result; 
+	}
+
+
+	function getAllData() {
+
+		return allStrokes; 
 	}
 
 
@@ -242,6 +251,7 @@ function Painter( scene, isLocal ) {
 		updateFromNetwork: updateFromNetwork,
 		setColor: setColor,
 		stroke: stroke,
-		getNewStrokes: getNewStrokes
+		getUpdateData: getUpdateData, 
+		getAllData: getAllData
 	}; 
 }

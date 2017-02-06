@@ -8,6 +8,7 @@ var Core = function() {
 	var player; 
 	var otherPlayers = { }; 
 	var cursorObjects = [ ]; 
+	var draggableObjects = [ ]; 
 	var isWebVR = false; 
 
 
@@ -85,10 +86,9 @@ var Core = function() {
 
 		lightCube.add( light ); 
 
-		lightCube.userData.draggable = true; 
 		lightCube.name = "lightCube"; 
 
-		Core.addCursorObject( lightCube ); 
+		Core.addCursorObject( lightCube, true ); 
 
 
 		//scene.add( light );
@@ -153,7 +153,6 @@ var Core = function() {
 		renderer = new THREE.WebGLRenderer( { antialias: true } );
 		renderer.setPixelRatio( window.devicePixelRatio );
 		renderer.setSize( window.innerWidth, window.innerHeight );
-		renderer.sortObjects = false; 
 		renderer.shadowMap.enabled = true; 
 		renderer.gammaInput = true; 
 		renderer.gammaOutput = true; 
@@ -264,12 +263,6 @@ var Core = function() {
 	function createPlayer( id ) {
 
 		player = new Player( id, true, isWebVR, camera, scene ); 
-
-	    //var line = player.getLine(); 
-
-	    //line.name = "line"; 
-
-	    //cursorObjects.push( line ); 
 	}
 
 
@@ -282,6 +275,15 @@ var Core = function() {
 
 			otherPlayers[ data.id ].updateFromNetwork( data );
 		}
+	}
+
+
+	function updateAllFromNetwork( data ) {
+
+		var otherPlayer = addOtherPlayer( data.id ); 
+
+		otherPlayer.updateFromNetwork( data ); 
+
 	}
 
 
@@ -298,6 +300,8 @@ var Core = function() {
 	    otherPlayers[ id ] = otherPlayer;
 
 	    scene.add( otherPlayer.mesh );
+
+	    return otherPlayer; 
 
 	    //var line = otherPlayer.getLine(); 
 
@@ -321,7 +325,18 @@ var Core = function() {
 
 		if ( player ) {
 
-			return player.getData(); 
+			return player.getUpdateData(); 
+		}
+
+		return null; 
+	}
+
+
+	function getAllData() {
+
+		if ( player ) {
+
+			return player.getAllData(); 
 		}
 
 		return null; 
@@ -338,9 +353,31 @@ var Core = function() {
 	}
 
 
-	function addCursorObject( object ) {
+	function addCursorObject( object, isDraggable ) {
+
+		if ( isDraggable ) {
+			object.userData.draggable = true; 
+			draggableObjects.push( object ); 
+		}
+
 		scene.add( object ); 
 		cursorObjects.push( object ); 
+	}
+
+
+	function getDraggableObjectData() {
+
+		var data = [ ]; 
+
+		for ( var i = 0; i < draggableObjects.length; i++ ) {
+			var object = draggableObjects[i]; 
+			data.push( { 
+				name: object.name, 
+				pos: object.position 
+			} );  
+		}
+
+		return data; 
 	}
 
 
@@ -352,10 +389,13 @@ var Core = function() {
 		addOtherPlayer: addOtherPlayer, 
 		removeOtherPlayer: removeOtherPlayer,
 		updateFromNetwork: updateFromNetwork, 
+		updateAllFromNetwork: updateAllFromNetwork, 
+		getAllData: getAllData,
 
 		getCursorObjects: getCursorObjects, 
 		getSceneObjects: getSceneObjects, 
-		addCursorObject: addCursorObject
+		addCursorObject: addCursorObject, 
+		getDraggableObjectData: getDraggableObjectData
 	}; 
 
 }(); 

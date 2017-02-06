@@ -33,13 +33,16 @@ io.on( 'connection', function( socket ) {
     socket.broadcast.emit( 'addOtherPlayer', id );
 
     socket.on( 'requestOldPlayers', function() {
-        for ( var i = 0; i < players.length; i++ ) {
-            if ( players[i] != id ) {
-            	// Send position data as well? 
-                socket.emit( 'addOtherPlayer', players[i] );
-            }
-        }
+
+
+    	socket.broadcast.emit( 'getAllData', id ); 
     });
+
+
+    socket.on( 'allData', function( data ) { 
+
+    	io.to( data.requesterId ).emit( 'giveAllData', data );  
+    }); 
 
 
     socket.on( 'update', function( data ) {
