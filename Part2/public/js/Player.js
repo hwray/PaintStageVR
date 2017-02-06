@@ -11,7 +11,6 @@ function Player( inId, isLocalPlayer, inIsWebVR, camera, inScene ) {
 	var id; 
 	var isEnabled; 
 	var leftMouseDown = false; 
-	var rightMouseDown = false; 
 
 	var scene; 
 
@@ -74,18 +73,11 @@ function Player( inId, isLocalPlayer, inIsWebVR, camera, inScene ) {
 			}
 
 			if ( leftMouseDown ) {
-				
+
 				painter.update( true ); 
 			} else {
 
 				painter.update( false ); 
-			}
-
-			 
-
-			if ( rightMouseDown ) {
-				//console.log("CURSOR"); 
-				//console.log( SphericalCursor.getIntersect() ); 
 			}
 		}
 
@@ -130,12 +122,10 @@ function Player( inId, isLocalPlayer, inIsWebVR, camera, inScene ) {
 		if ( event.button == 0 ) {
 
 			leftMouseDown = true; 
-			rightMouseDown = false; 
 
 		} else if ( event.button == 2 ) {
 
-			leftMouseDown = false; 
-			rightMouseDown = true; 
+			SphericalCursor.setRightMouseDown( true ); 
 		}
 	}
 
@@ -148,7 +138,7 @@ function Player( inId, isLocalPlayer, inIsWebVR, camera, inScene ) {
 
 		} else if ( event.button == 2 ) {
 
-			rightMouseDown = false; 
+			SphericalCursor.setRightMouseDown( false ); 
 		}
 	}
 

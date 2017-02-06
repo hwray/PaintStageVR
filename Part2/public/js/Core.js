@@ -55,15 +55,44 @@ var Core = function() {
 
 		scene.add( new THREE.HemisphereLight( 0x888877, 0x777788 ) );
 
+/*
 		var light = new THREE.DirectionalLight( 0xffffff );
-		light.position.set( 0, 6, 0 );
+		light.position.set( 0, 0, 0 );
 		light.castShadow = true;
 		light.shadow.camera.top = 2;
 		light.shadow.camera.bottom = -2;
 		light.shadow.camera.right = 2;
 		light.shadow.camera.left = -2;
 		light.shadow.mapSize.set( 4096, 4096 );
-		scene.add( light );
+		*/
+
+		var light = new THREE.SpotLight( 0xffffff ); 
+
+		// TODO: Params??? 
+
+		light.castShadow = true; 
+		light.shadow.camera.top = 2;
+		light.shadow.camera.bottom = -2;
+		light.shadow.camera.right = 2;
+		light.shadow.camera.left = -2;
+		light.shadow.mapSize.set( 4096, 4096 );
+
+
+		var geometry = new THREE.BoxGeometry( 0.2, 0.2, 0.2 );
+		var material = new THREE.MeshBasicMaterial( { color: 0xffffff } );
+		var lightCube = new THREE.Mesh( geometry, material );
+		lightCube.position.set( 0, 6, 0); 
+
+		lightCube.add( light ); 
+
+		lightCube.userData.draggable = true; 
+
+		Core.addCursorObject( lightCube ); 
+
+
+		//scene.add( light );
+
+
 		// scene.add( new THREE.DirectionalLightHelper( light ) );
 		// scene.add( new THREE.CameraHelper( light.shadow.camera ) );
 		//

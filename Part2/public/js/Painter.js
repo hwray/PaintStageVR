@@ -89,6 +89,7 @@ function Painter( scene, isLocal ) {
 				cube.position.set( 0 + i, 2, -3); 
 				cube.userData.isColorPalette = true; 
 				cube.userData.color = colors[i]; 
+				cube.userData.draggable = true; 
 				Core.addCursorObject( cube ); 
 			}
 		}

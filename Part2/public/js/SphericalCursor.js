@@ -18,6 +18,9 @@ var SphericalCursor = function() {
 	raycaster.far = maxDistance;  					// set max distance to raycast
 	var camera; 
 
+	var rightMouseDown = false; 
+	var dragObject = null; 
+
 	// Events
 	window.addEventListener( "mousemove", onMouseMove );
 	window.addEventListener( "DOMMouseScroll", onScroll, false ); // for Firefox
@@ -60,7 +63,19 @@ var SphericalCursor = function() {
 			// Object intersected
 
 			// Store closest intersected object as current hit
-			updateHit( intersects[0] ); 
+			var intersect = null; 
+			for ( var i = 0; i < intersects.length; i++ ) {
+
+				if ( intersects[i].object.userData.isDragging ) {
+					continue; 
+
+				} else {
+					intersect = intersects[i]; 
+					break; 
+				}
+			}
+
+			updateHit( intersect ); 
 
 		} else {
 			// No objects intersected
@@ -71,6 +86,8 @@ var SphericalCursor = function() {
 
 		// Update cursor position and scale
 		updateCursor(); 
+
+		updateDrag(); 
 	}
 
 
@@ -154,6 +171,30 @@ var SphericalCursor = function() {
 	}
 
 
+	function updateDrag() {
+
+		if ( dragObject ) {
+
+			if ( rightMouseDown ) {
+
+				dragObject.position.copy( cursor.position ); 
+
+			} else {
+
+				dragObject.userData.isDragging = false; 
+				dragObject = null; 
+
+			}
+
+		} else if ( !dragObject && rightMouseDown && hit && hit.object.userData.draggable == true) {
+
+			dragObject = hit.object; 
+
+			dragObject.userData.isDragging = true; 
+		}
+	}
+
+
 	function onMouseMove( event ) {
 
 		if ( !enabled ) {
@@ -179,6 +220,11 @@ var SphericalCursor = function() {
 	}
 
 
+	function setRightMouseDown( bool ) {
+		rightMouseDown = bool;
+	}
+
+
 	function setEnabled( bool ) {
 
 		enabled = bool; 
@@ -200,7 +246,8 @@ var SphericalCursor = function() {
 		update: update, 
 		setEnabled: setEnabled, 
 		getCursor: getCursor, 
-		getIntersect: getIntersect
+		getIntersect: getIntersect, 
+		setRightMouseDown: setRightMouseDown
 	};
 
 }();
