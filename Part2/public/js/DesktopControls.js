@@ -8,9 +8,10 @@ var DesktopControls = function() {
 	var JUMP_HEIGHT = 10; 								// controls jump height/speed
 	var GRAVITY = 9.8; 									// controls gravitational constant
 	var PI_2 = Math.PI / 2; 
+	var HEIGHT = 1.8; 
 
 	// Globals
-	var enabled = true; 								// sets whether the controls are currently active
+	var enabled = false; 								// sets whether the controls are currently active
 	var moveFront = false; 								// is forward movement key currently pressed
 	var moveBack = false; 								// is back movement key currently pressed
 	var moveLeft = false; 								// is left movement key currently pressed
@@ -43,7 +44,7 @@ var DesktopControls = function() {
 		pitchObject.add( camera );
 
 		yawObject = new THREE.Object3D();
-		yawObject.position.y = 10;
+		yawObject.position.y = HEIGHT; 
 		yawObject.add( pitchObject );
 
 		scene.add( yawObject ); 

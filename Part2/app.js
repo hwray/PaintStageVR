@@ -27,7 +27,7 @@ io.on( 'connection', function( socket ) {
 
     socket.emit( 'createPlayer', id );
 
-    console.log("New player: " + id); 
+    console.log( "New player: " + id ); 
 
     // Send position data as well? 
     socket.broadcast.emit( 'addOtherPlayer', id );
@@ -49,7 +49,14 @@ io.on( 'connection', function( socket ) {
 
     socket.on( 'disconnect', function() {
 
-        console.log('a user disconnected');
+        console.log( 'Player disconnected: ' + id );
+
+        for ( var i = 0; i < players.length; i++ ) {
+
+        	if ( players[i] == id ) {
+        		players.splice( i, 1 );
+        	}
+        }
 
         io.emit( 'removeOtherPlayer', id );
     });

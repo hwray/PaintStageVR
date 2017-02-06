@@ -38,7 +38,7 @@ var Core = function() {
 		} else {
 
 			console.log( "No WebVR available!" ); 
-			document.body.appendChild( WebVR.getMessage() );
+			//document.body.appendChild( WebVR.getMessage() );
 
 		}
 
@@ -86,6 +86,7 @@ var Core = function() {
 		table.position.z = 0.85;
 		table.castShadow = true;
 		table.receiveShadow = true;
+		table.name = "table"; 
 		scene.add( table );
 
 		/*
@@ -108,6 +109,7 @@ var Core = function() {
 
 		floor.rotation.x = - Math.PI / 2;
 		floor.receiveShadow = true;
+		floor.name = "floor"; 
 		scene.add( floor );
 		scene.add( new THREE.GridHelper( 20, 40, 0x111111, 0x111111 ) );
 
@@ -232,6 +234,12 @@ var Core = function() {
 	function createPlayer( id ) {
 
 		player = new Player( id, true, isWebVR, camera, scene ); 
+
+	    //var line = player.getLine(); 
+
+	    //line.name = "line"; 
+
+	    //cursorObjects.push( line ); 
 	}
 
 
@@ -249,15 +257,23 @@ var Core = function() {
 
 	function addOtherPlayer( id ) {
 
-		if ( player && player.id == id ) {
+		if ( !id || player && player.id == id ) {
 			return; 
 		} 
+
+		console.log("CREATING OTHER PLAYER: " + id); 
 
 		var otherPlayer = new Player( id, false, false, camera, scene ); 
 
 	    otherPlayers[ id ] = otherPlayer;
 
 	    scene.add( otherPlayer.mesh );
+
+	    //var line = otherPlayer.getLine(); 
+
+	    //line.name = "line"; 
+
+	    //cursorObjects.push( line ); 
 
 	}
 
@@ -288,7 +304,13 @@ var Core = function() {
 
 
 	function getSceneObjects() {
-		return scene.children; 
+		return cursorObjects; 
+	}
+
+
+	function addCursorObject( object ) {
+		scene.add( object ); 
+		cursorObjects.push( object ); 
 	}
 
 
@@ -302,7 +324,8 @@ var Core = function() {
 		updateFromNetwork: updateFromNetwork, 
 
 		getCursorObjects: getCursorObjects, 
-		getSceneObjects: getSceneObjects
+		getSceneObjects: getSceneObjects, 
+		addCursorObject: addCursorObject
 	}; 
 
 }(); 

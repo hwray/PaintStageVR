@@ -9,7 +9,7 @@ var SphericalCursor = function() {
 	var SCROLL_WHEEL_SENSITIVITY = 0.5; 
 
 	// Globals
-	var enabled = true; 							// controls whether the cursor is active
+	var enabled = false						// controls whether the cursor is active
 	var mouse = new THREE.Vector3( 0, 0, 0.5 ); 	// tracks the mouse X and Y movement
 	var hit = null; 								// tracks the current object being intersected by the cursor
 	var raycaster = new THREE.Raycaster();			// raycaster for getting intersects
@@ -42,6 +42,8 @@ var SphericalCursor = function() {
 		//ceiling.renderOrder = 0;
 		cursor.renderOrder = 1;
 		cursor.material.depthTest = false;
+
+		enabled = true; 
 	}; 
 
 
@@ -88,7 +90,7 @@ var SphericalCursor = function() {
 		// Set raycast from the camera in the direction of the 3D mouse position
 		raycaster.set( position, direction ); 
 
-		// Return all intersected objects from the furnitureGroup
+		// Return all intersected objects from the scene
 		return raycaster.intersectObjects( Core.getCursorObjects(), true ); 
 	}
 
@@ -99,7 +101,7 @@ var SphericalCursor = function() {
 			// No hit object
 
 			// Reset previous hit object to default color
-			hit.object.material.color.set( DEFAULT_COLOR ); 
+			//hit.object.material.color.set( DEFAULT_COLOR ); 
 
 		} else if ( intersect ) {
 			// Hit object
@@ -114,11 +116,11 @@ var SphericalCursor = function() {
 				}
 
 				// Reset current hit object's color to default
-				hit.object.material.color.set( DEFAULT_COLOR );
+				//hit.object.material.color.set( DEFAULT_COLOR );
 			}
 
 			// Highlight the new hit object
-			intersect.object.material.color.set( HIGHLIGHT_COLOR ); 
+			//intersect.object.material.color.set( HIGHLIGHT_COLOR ); 
 		}
 
 		// Store the intersect as the current hit object
@@ -188,11 +190,17 @@ var SphericalCursor = function() {
 	}
 
 
+	function getIntersect() {
+		return hit; 
+	}
+
+
 	return {
 		init: init,
 		update: update, 
 		setEnabled: setEnabled, 
-		getCursor: getCursor
+		getCursor: getCursor, 
+		getIntersect: getIntersect
 	};
 
 }();
