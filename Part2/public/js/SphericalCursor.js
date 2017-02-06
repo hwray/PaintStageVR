@@ -16,11 +16,12 @@ var SphericalCursor = function() {
 	var hit = null; 								// tracks the current object being intersected by the cursor
 	var raycaster = new THREE.Raycaster();			// raycaster for getting intersects
 	var cursor; 
-	var maxDistance = 10;             			// maximum distance to raycast
-	raycaster.far = maxDistance;  					// set max distance to raycast
+	var currDistance = 10;             			// maximum distance to raycast
+	raycaster.far = currDistance;  					// set max distance to raycast
 	var camera; 
 
 	var rightMouseDown = false; 
+	var middleMouseDown = false; 
 	var dragObject = null; 
 
 	// Events
@@ -163,7 +164,7 @@ var SphericalCursor = function() {
 			// - Normalize raycaster direction vector (which points to mouse's position in 3D space) to set length = 1
 			// - Multiply vector by sphereRadius to set length = sphereRadius
 			// - Add vector to raycaster origin (camera position) to get mouse's position in 3D space at sphereRadius distance from camera
-			cursor.position.copy( raycaster.ray.origin.add( raycaster.ray.direction.normalize().multiplyScalar( maxDistance ) ) ); 
+			cursor.position.copy( raycaster.ray.origin.add( raycaster.ray.direction.normalize().multiplyScalar( currDistance ) ) ); 
 
 			// Scale cursor to default scale
 			cursor.scale.set( DEFAULT_CURSOR_SCALE, DEFAULT_CURSOR_SCALE, DEFAULT_CURSOR_SCALE ); 
@@ -191,6 +192,8 @@ var SphericalCursor = function() {
 			dragObject = hit.object; 
 
 			dragObject.userData.isDragging = true; 
+
+			currDistance = hit.distance; 
 		}
 	}
 
@@ -213,18 +216,28 @@ var SphericalCursor = function() {
 	function onScroll( event ){
 
 		var direction = ( event.detail < 0 || event.wheelDelta > 0 ) ? 1 : -1;
-		
-		maxDistance += direction * SCROLL_WHEEL_SENSITIVITY; 
 
-		maxDistance = Math.min( Math.max( maxDistance, MIN_CURSOR_DISTANCE ), MAX_CURSOR_DISTANCE )
+		if ( middleMouseDown ) {
 
-		raycaster.far = maxDistance; 
+			Core.changePainterThickness( direction ); 
 
+		} else {
+
+			currDistance += direction * SCROLL_WHEEL_SENSITIVITY; 
+
+			currDistance = Math.min( Math.max( currDistance, MIN_CURSOR_DISTANCE ), MAX_CURSOR_DISTANCE )
+
+			raycaster.far = currDistance; 
+		}
 	}
 
 
 	function setRightMouseDown( bool ) {
 		rightMouseDown = bool;
+	}
+
+	function setMiddleMouseDown( bool ) {
+		middleMouseDown = bool; 
 	}
 
 
@@ -270,6 +283,7 @@ var SphericalCursor = function() {
 		getCursor: getCursor, 
 		getIntersect: getIntersect, 
 		setRightMouseDown: setRightMouseDown, 
+		setMiddleMouseDown: setMiddleMouseDown,
 		getDraggedObjectData: getDraggedObjectData, 
 		setColor: setColor
 	};

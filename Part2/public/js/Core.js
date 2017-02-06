@@ -12,13 +12,18 @@ var Core = function() {
 	var isWebVR = false; 
 	var loader; 
 	var assetIDs = [ 
-		//"parrot",
-		//"stork", 
-		"fox"//, 
-		//"horse"
+		"flamingo",
+		"fox", 
+		"horse",
+		"hummingbird", 
+		"parrot", 
+		"rabbit", 
+		"toad", 
+		"treefrog", 
+		"stork"
 	]; 
 	var clock = new THREE.Clock(); 
-	var mixer; 
+	var mixers = [ ]; 
 
 
 	// Events
@@ -114,7 +119,7 @@ var Core = function() {
 
 	function initGeometry() {
 
-		var geometry = new THREE.BoxGeometry( 0.5, 0.8, 0.5 );
+		var geometry = new THREE.BoxGeometry( 2, 1.5, 1 );
 		var material = new THREE.MeshStandardMaterial( {
 			color: 0x444444,
 			roughness: 1.0,
@@ -202,26 +207,21 @@ var Core = function() {
 
 			var mesh; 
 
-			//var hasAnimation = true; 
-
-			//if (hasAnimation) {
 
 			mesh = new THREE.MorphBlendMesh(geometry, material); 
 
-			//} else {
 
-			//	mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(material));
+			mesh.name = id; 
+			Core.addCursorObject( mesh, true ); 
 
-			//}
-
-			scene.add( mesh ); 
-
-			mixer = new THREE.AnimationMixer( mesh ); 
+			var mixer = new THREE.AnimationMixer( mesh ); 
 
 			var clip = THREE.AnimationClip.CreateFromMorphTargetSequence( 'run', geometry.morphTargets, 30 );
 			mixer.clipAction( clip ).setDuration( 1 ).play();
 
-			mesh.position.set( 1, 1, 1 ); 
+			mixers.push( mixer ); 
+
+			mesh.position.set( index, index, index ); 
 			mesh.scale.set( 0.005, 0.005, 0.005 ); 
 		});
 	}
@@ -313,9 +313,11 @@ var Core = function() {
 
 		if ( player && renderer ) {
 
-			if ( mixer ) {
+			var delta = clock.getDelta(); 
 
-				mixer.update( ( clock.getDelta() ) ); 
+			for ( var i = 0; i < mixers.length; i++ ) {
+
+				mixers[i].update( delta ); 
 
 			}
 
@@ -394,12 +396,6 @@ var Core = function() {
 
 	    return otherPlayer; 
 
-	    //var line = otherPlayer.getLine(); 
-
-	    //line.name = "line"; 
-
-	    //cursorObjects.push( line ); 
-
 	}
 
 
@@ -472,6 +468,11 @@ var Core = function() {
 	}
 
 
+	function changePainterThickness( direction ) {
+		player.changePainterThickness( direction ); 
+	}
+
+
 
 	return {
 		init: init, 
@@ -486,7 +487,8 @@ var Core = function() {
 		getCursorObjects: getCursorObjects, 
 		getSceneObjects: getSceneObjects, 
 		addCursorObject: addCursorObject, 
-		getDraggableObjectData: getDraggableObjectData
+		getDraggableObjectData: getDraggableObjectData, 
+		changePainterThickness: changePainterThickness
 	}; 
 
 }(); 

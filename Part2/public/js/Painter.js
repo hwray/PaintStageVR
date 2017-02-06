@@ -20,6 +20,10 @@ function Painter( scene, isLocal ) {
 	var allStrokes = [ ]; 
 	var newStrokes = [ ]; 
 
+	var minThickness = 0.001; 
+	var maxThickness = 0.5; 
+	var thickness = 0.01; 
+
 	var colorHex = 0x00ffff; 
 	var color = new THREE.Color( colorHex ); 
 
@@ -68,16 +72,7 @@ function Painter( scene, isLocal ) {
 
 		scene.add( line );
 
-		// Shapes
-		var PI2 = Math.PI * 2;
-		var sides = 10;
-		var array = [];
-		for ( var i = 0; i < sides; i ++ ) {
-			var angle = ( i / sides ) * PI2;
-			array.push( new THREE.Vector3( Math.sin( angle ) * 0.01, Math.cos( angle ) * 0.01, 0 ) );
-		}
-
-		shapes[ 'tube' ] = array;
+		createTubeShape( thickness ); 
 
 		// Add color palette pickers
 		if ( isLocal ) {
@@ -97,10 +92,33 @@ function Painter( scene, isLocal ) {
 	}
 
 
-	function stroke( color, point1, point2, matrix1, matrix2 ) {
+	function createTubeShape( thickness ) {
+
+		// Shapes
+		var PI2 = Math.PI * 2;
+		var sides = 10;
+		var array = [];
+		for ( var i = 0; i < sides; i ++ ) {
+			var angle = ( i / sides ) * PI2;
+			array.push( new THREE.Vector3( Math.sin( angle ) * thickness, Math.cos( angle ) * thickness, 0 ) );
+		}
+
+		shapes[ "" + thickness ] = array;
+
+		return array; 
+	}
+
+
+	function stroke( color, point1, point2, matrix1, matrix2, thickness ) {
 
 		//var color = controller.getColor();
-		var shape = shapes[ 'tube' ];
+		var shape; 
+		if ( shapes[ "" + thickness ] ) {
+			shape = shapes[ "" + thickness ]; 
+		} else {
+			shape = createTubeShape( thickness ); 
+		}
+
 		var geometry = line.geometry;
 		var attributes = geometry.attributes;
 		var count = geometry.drawRange.count;
@@ -193,9 +211,9 @@ function Painter( scene, isLocal ) {
 
 		if ( shouldPaint ) {
 
-			stroke( color, point1, point2, matrix1, matrix2 ); 
+			stroke( color, point1, point2, matrix1, matrix2, thickness ); 
 
-			newStrokes.push( [ colorHex, point1.clone(), point2.clone(), matrix1.clone(), matrix2.clone() ] ); 
+			newStrokes.push( [ colorHex, point1.clone(), point2.clone(), matrix1.clone(), matrix2.clone(), thickness ] ); 
 		}
 
 		point2.copy( point1 );
@@ -212,7 +230,7 @@ function Painter( scene, isLocal ) {
 	    colorHex = stroke[0]; 
 	    color.set( colorHex ); 
 
-	    this.stroke( color, stroke[1], stroke[2], stroke[3], stroke[4] ); 
+	    this.stroke( color, stroke[1], stroke[2], stroke[3], stroke[4], stroke[5] ); 
 
 	    updateGeometry( count, line.geometry.drawRange.count ); 
 
@@ -244,6 +262,13 @@ function Painter( scene, isLocal ) {
 	}
 
 
+	function changeThickness( direction ) {
+		thickness += direction * 0.01; 
+
+		thickness = Math.min( Math.max( thickness, minThickness ), maxThickness )
+	}
+
+
 
 
 	return {
@@ -252,6 +277,7 @@ function Painter( scene, isLocal ) {
 		setColor: setColor,
 		stroke: stroke,
 		getUpdateData: getUpdateData, 
-		getAllData: getAllData
+		getAllData: getAllData, 
+		changeThickness: changeThickness
 	}; 
 }

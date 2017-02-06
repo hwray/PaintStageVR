@@ -159,9 +159,14 @@ function Player( inId, isLocalPlayer, inIsFirst, inIsWebVR, camera, inScene ) {
 
 			leftMouseDown = true; 
 
+		} else if ( event.button == 1 ) {
+
+			SphericalCursor.setMiddleMouseDown( true ); 
+
 		} else if ( event.button == 2 ) {
 
 			SphericalCursor.setRightMouseDown( true ); 
+
 		}
 	}
 
@@ -172,10 +177,19 @@ function Player( inId, isLocalPlayer, inIsFirst, inIsWebVR, camera, inScene ) {
 
 			leftMouseDown = false; 
 
+		} else if ( event.button == 1 ) {
+
+			SphericalCursor.setMiddleMouseDown( false ); 
+
 		} else if ( event.button == 2 ) {
 
 			SphericalCursor.setRightMouseDown( false ); 
 		}
+	}
+
+
+	function changePainterThickness( direction ) {
+		painter.changeThickness( direction ); 
 	}
 
 
@@ -186,6 +200,7 @@ function Player( inId, isLocalPlayer, inIsFirst, inIsWebVR, camera, inScene ) {
 		updateFromNetwork: updateFromNetwork,
 		getUpdateData: getUpdateData, 
 		getAllData: getAllData, 
-		id: id
+		id: id, 
+		changePainterThickness: changePainterThickness
 	}; 
 }

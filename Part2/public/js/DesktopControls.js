@@ -4,11 +4,9 @@ var DesktopControls = function() {
 	// https://github.com/mrdoob/three.js/blob/master/examples/misc_controls_pointerlock.html
 
 	// Constants
-	var SPEED = 500.0;									// controls rate of speed for movement
 	var JUMP_HEIGHT = 10; 								// controls jump height/speed
 	var GRAVITY = 9.8; 									// controls gravitational constant
 	var PI_2 = Math.PI / 2; 
-	var HEIGHT = 1.8; 
 
 	// Globals
 	var enabled = false; 								// sets whether the controls are currently active
@@ -25,6 +23,7 @@ var DesktopControls = function() {
 	var velocity = new THREE.Vector3(); 				// tracks current player velocity for smoother acceleration/deceleration
 	var clock = new THREE.Clock(); 						// clock for tracking time between frames
 	raycaster = new THREE.Raycaster( new THREE.Vector3(), new THREE.Vector3( 0, -1, 0 ), 0, height );		// raycaster for checking collision while jumping
+	var speed = 0; 
 
 	var pitchObject; 
 	var yawObject; 
@@ -40,11 +39,16 @@ var DesktopControls = function() {
     	height = inHeight; 
     	raycaster.far = height; 
 
+    	speed = height == 1.8 ? 250 : 100; 
+
 		pitchObject = new THREE.Object3D();
 		pitchObject.add( camera );
 
 		yawObject = new THREE.Object3D();
-		yawObject.position.y = HEIGHT; 
+		yawObject.position.y = height == 1.8 ? height : 1.5 + height; 
+		if (height != 1.8) {
+			yawObject.position.z = 0.85;
+		}
 		yawObject.add( pitchObject );
 
 		scene.add( yawObject ); 
@@ -87,10 +91,10 @@ var DesktopControls = function() {
 		velocity.y -= GRAVITY * 10.0 * delta;
 
 		// Add velocity from currently pressed movement keys
-		if ( moveFront ) velocity.z -= SPEED * delta;
-		if ( moveBack ) velocity.z += SPEED * delta;
-		if ( moveLeft ) velocity.x -= SPEED * delta;
-		if ( moveRight ) velocity.x += SPEED * delta;
+		if ( moveFront ) velocity.z -= speed * delta;
+		if ( moveBack ) velocity.z += speed * delta;
+		if ( moveLeft ) velocity.x -= speed * delta;
+		if ( moveRight ) velocity.x += speed * delta;
 	}
 
 

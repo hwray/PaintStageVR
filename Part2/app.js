@@ -18,19 +18,17 @@ app.get( '/', function( req, res ) {
 });
 
 
-
 io.on( 'connection', function( socket ) {
 
 	console.log( "New player: " + socket.id ); 
 
 	// Store new player
     var id = socket.id;
-    players.push( id ); 
 
     // Give new player their ID and whether they are the first player, and tell them to create the local player character
     var data = {
     	id: id, 
-    	isFirst: players.length == 1
+    	isFirst: players.length == 0
     }; 
     socket.emit( 'createPlayer', data );
 
@@ -40,6 +38,8 @@ io.on( 'connection', function( socket ) {
 
     // The new player is requesting existing app data 
     socket.on( 'requestOldData', function() {
+
+    	players.push( id ); 
 
     	// Tell all other players to respond with their existing app data
     	socket.broadcast.emit( 'getAllData', id ); 
