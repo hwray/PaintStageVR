@@ -3,9 +3,9 @@
 
 # PaintStage
 
-PaintStage is a Three.js + WebVR tool for collaborative 3D painting and scene building. It can be used as a shared virtual space for asymmetrical games, improv theater, free-form role-playing, and other forms of creative expression and performance. 
+## Overview
 
-![paintstage-gif-2](http://i.imgur.com/BcLFErJ.gif)
+PaintStage is a Three.js + WebVR tool for collaborative 3D painting and scene building. It can be used as a shared virtual space for asymmetrical games, improv theater, free-form role-playing, and other forms of creative expression and performance. 
 
 
 ## Instructions
@@ -54,6 +54,8 @@ The code is structured on the classic JavaScript module pattern. PaintStage was 
 * **SphericalCursor.js:** Cursor for painting and interacting with the scene. Tracks mouse movement and updates cursor object in 3D space. Also handles grabbing and dragging objects in the scene. 
 * **ViveControls.js:** Coming soon! 
 
+
+![paintstage-gif-2](http://i.imgur.com/BcLFErJ.gif)
 
 
 ## Disclaimers, Known Issues, & Limitations
