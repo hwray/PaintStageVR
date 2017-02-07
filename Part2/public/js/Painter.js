@@ -1,33 +1,28 @@
 function Painter( scene, isLocal ) {
-
-	// Constants
-	var COLORS = [ 	0xff00ff, 0xff0000, 0x00ffff ]; 
 	
+	// Constants
+	var NUM_COLORS = 60; 
+
 	// Globals
 	var line;
 	var shapes = { };
 	var up = new THREE.Vector3( 0, 1, 0 );
+	var point1 = new THREE.Vector3(); 
+	var point2 = new THREE.Vector3(); 
+	var point4 = new THREE.Vector3();
+	var point5 = new THREE.Vector3();
 	var vector = new THREE.Vector3();
 	var vector1 = new THREE.Vector3();
 	var vector2 = new THREE.Vector3();
 	var vector3 = new THREE.Vector3();
 	var vector4 = new THREE.Vector3();
-	var point4 = new THREE.Vector3();
-	var point5 = new THREE.Vector3();
-
-	var point1 = new THREE.Vector3(); 
-	var point2 = new THREE.Vector3(); 
-
 	var matrix1 = new THREE.Matrix4(); 
 	var matrix2 = new THREE.Matrix4(); 
-
 	var allStrokes = [ ]; 
 	var newStrokes = [ ]; 
-
 	var minThickness = 0.001; 
 	var maxThickness = 0.5; 
 	var thickness = 0.01; 
-
 	var colorHex = 0x00ffff; 
 	var color = new THREE.Color( colorHex ); 
 
@@ -45,6 +40,7 @@ function Painter( scene, isLocal ) {
 
 
 	function initLine( scene ) {
+		// Create line object that represents strokes via a BufferGeometry that is built up over time
 
 		var geometry = new THREE.BufferGeometry();
 		var positions = new THREE.BufferAttribute( new Float32Array( 1000000 * 3 ), 3 );
@@ -61,7 +57,6 @@ function Painter( scene, isLocal ) {
 		var material = new THREE.MeshStandardMaterial( {
 			roughness: 0.9,
 			metalness: 0.0,
-			// envMap: reflectionCube,
 			vertexColors: THREE.VertexColors,
 			side: THREE.DoubleSide
 		} );
@@ -76,6 +71,8 @@ function Painter( scene, isLocal ) {
 
 
 	function createTubeShape( thickness ) {
+		// Create the shape that forms the basis of each segment in the line BufferGeometry. 
+		// A different shape is created and stored each time the thickness changes to a new value. 
 
 		// Shapes
 		var PI2 = Math.PI * 2;
@@ -96,26 +93,43 @@ function Painter( scene, isLocal ) {
 
 		// Add color palette pickers
 
-		for ( var i = 0; i < COLORS.length; i++ ) {
+		for ( var i = 0; i < NUM_COLORS; i++ ) {
+			var color = new THREE.Color(getRandomColor()); 
 			var geometry = new THREE.BoxGeometry( 0.2, 0.2, 0.2 );
-			var material = new THREE.MeshBasicMaterial( { color: COLORS[i] } );
+			var material = new THREE.MeshBasicMaterial( { color: color } );
 			var cube = new THREE.Mesh( geometry, material );
-			cube.position.set( 0 + i, 2, -3); 
+
+			var row = Math.floor(i / 20); 
+
+			cube.position.set( -2.7, 1.3 + row * 0.2, -0.9 + (i - row * 20) * 0.2 ); 
 			cube.userData.isColorPalette = true; 
-			cube.userData.color = COLORS[i]; 
-			cube.name = "palette" + COLORS[i]; 
-			Core.addCursorObject( cube, true ); 
+			cube.userData.color = color.getHex(); 
+			cube.name = "palette" + color.getHex(); 
+			Core.addCursorObject( cube, false ); 
 		}
+	}
+
+	function getRandomColor() {
+	    var letters = '0123456789ABCDEF';
+	    var color = '#';
+	    for (var i = 0; i < 6; i++ ) {
+	        color += letters[Math.floor(Math.random() * 16)];
+	    }
+	    return color;
 	}
 
 
 	function stroke( color, point1, point2, matrix1, matrix2, thickness ) {
 
-		//var color = controller.getColor();
 		var shape; 
 		if ( shapes[ "" + thickness ] ) {
+
+			// If this thickness of line has been drawn before, get its corresponding shape
 			shape = shapes[ "" + thickness ]; 
+
 		} else {
+
+			// If this is a new thickness, create the necessary shape
 			shape = createTubeShape( thickness ); 
 		}
 
@@ -181,6 +195,7 @@ function Painter( scene, isLocal ) {
 
 
 	function updateGeometry( start, end ) {
+		// Update the line's BufferGeometry
 
 		if ( start === end ) return;
 		var offset = start * 3;
@@ -200,6 +215,7 @@ function Painter( scene, isLocal ) {
 
 
 	function update( shouldPaint ) {
+		// TODO: Comment
 
 		var count = line.geometry.drawRange.count; 
 

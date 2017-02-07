@@ -1,6 +1,6 @@
 var DesktopControls = function() {
 
-	// Parts of this code are based on the Three.js PointerLockControls example: 
+	// Parts of this code are based on the Three.js PointerLockControls example, as well as the internal implementation of PointerLockControls: 
 	// https://github.com/mrdoob/three.js/blob/master/examples/misc_controls_pointerlock.html
 
 	// Constants
@@ -21,8 +21,7 @@ var DesktopControls = function() {
 	var canJump = false; 
 	var height = 1.8; 
 	var velocity = new THREE.Vector3(); 				// tracks current player velocity for smoother acceleration/deceleration
-	var clock = new THREE.Clock(); 						// clock for tracking time between frames
-	raycaster = new THREE.Raycaster( new THREE.Vector3(), new THREE.Vector3( 0, -1, 0 ), 0, height );		// raycaster for checking collision while jumping
+	var raycaster; 										// raycaster for checking collision while jumping
 	var speed = 0; 
 
 	var pitchObject; 
@@ -37,7 +36,8 @@ var DesktopControls = function() {
     	camera.rotation.set( 0, 0, 0 );
 
     	height = inHeight; 
-    	raycaster.far = height; 
+
+    	raycaster = new THREE.Raycaster( new THREE.Vector3(), new THREE.Vector3( 0, -1, 0 ), 0, height );
 
     	speed = height == 1.8 ? 250 : 100; 
 
@@ -45,10 +45,14 @@ var DesktopControls = function() {
 		pitchObject.add( camera );
 
 		yawObject = new THREE.Object3D();
-		yawObject.position.y = height == 1.8 ? height : 1.5 + height; 
+		yawObject.position.y = height == 1.8 ? height : 1.2 + height; 
 		if (height != 1.8) {
-			yawObject.position.z = 0.85;
+			yawObject.position.z = -2;
+			yawObject.rotation.y += Math.PI; 
+		} else {
+			yawObject.position.z = 8; 
 		}
+
 		yawObject.add( pitchObject );
 
 		scene.add( yawObject ); 
@@ -56,16 +60,13 @@ var DesktopControls = function() {
     	SphericalCursor.init( camera, scene ); 
 	}
 
-	function update() {
+	function update( delta ) {
 
 		if ( !enabled ) {
 			return; 
 		}
 
 		SphericalCursor.update(); 
-
-		// Get delta time from last update
-		var delta = clock.getDelta(); 
 
 		// Update camera velocity
 		updateVelocity( delta ); 
@@ -231,6 +232,7 @@ var DesktopControls = function() {
 	function setEnabled( bool ) {
 
 		enabled = bool; 
+		SphericalCursor.setEnabled( bool ); 
 	}
 
 

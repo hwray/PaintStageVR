@@ -1,48 +1,25 @@
 function Player( inId, isLocal, inIsFirst, inIsWebVR, camera, inScene ) {
 	
 	// Globals
-	var isWebVR; 
-	var mesh; 
-	var id; 
-	var isEnabled; 
+	var id = inId; 
+	var scene = inScene; 
+	var isFirst = inIsFirst; 
+	var isWebVR = inIsWebVR; 
+	var isEnabled = false; 
 	var leftMouseDown = false; 
-
-	var size = 0.3; 
-	var height = 1.8; 
-
-	var scene; 
-
+	var size = isFirst ? 0.3 : 0.03; 
+	var height = isFirst ? 1.8 : 0.18; 
 	var painter; 
+	var mesh; 
 
-	var isFirst; 
+	// Init
+	if ( !isLocal ) {
 
-
-
-
-	init( inId, isLocal, inIsFirst, inIsWebVR, camera, inScene ); 
-
-
-	function init( inId, isLocal, inIsFirst, inIsWebVR, camera, inScene ) {
-
-		id = inId; 
-		isWebVR = inIsWebVR; 
-
-		isEnabled = false; 
-
-		isFirst = inIsFirst; 
-
-		scene = inScene; 
-
-		size = isFirst ? 0.3 : 0.03; 
-		height = isFirst ? 1.8 : 0.18; 
-
-		if ( !isLocal ) {
-
-			initMesh(); 
-		}
-
-		painter = new Painter( scene, isLocal );
+		initMesh(); 
 	}
+
+	painter = new Painter( scene, isLocal );
+
 
 
 	function initMesh() {
@@ -62,16 +39,6 @@ function Player( inId, isLocal, inIsFirst, inIsWebVR, camera, inScene ) {
 	function update() {
 
 		if ( isEnabled ) {
-
-			var intersect = SphericalCursor.getIntersect(); 
-
-			if ( intersect && leftMouseDown ) {
-				if ( intersect.object.userData.isColorPalette ) {
-					painter.setColor( SphericalCursor.getIntersect().object.userData.color ); 
-				} else if ( intersect.object.userData.isSpotLightControl ) {
-					Core.toggleSpotlight(); 
-				}
-			}
 
 			if ( leftMouseDown ) {
 
@@ -106,10 +73,13 @@ function Player( inId, isLocal, inIsFirst, inIsWebVR, camera, inScene ) {
 
 		    	var dragObj = scene.getObjectByName( drag.name, true ); 
 
-		    	dragObj.position.copy( drag.pos ); 
+		    	if ( dragObj ) {
+		    		dragObj.position.copy( drag.pos ); 
+		    	}
 		    }
 	    }
 
+	    // TODO
 	    Core.setSpotLight( data.light ); 
 	}
 
@@ -141,6 +111,10 @@ function Player( inId, isLocal, inIsFirst, inIsWebVR, camera, inScene ) {
 		return data; 
 	}
 
+	function setPaintColor( color ) {
+		painter.setColor( color ); 
+	}
+
 
 	function changePainterThickness( direction ) {
 		painter.changeThickness( direction ); 
@@ -152,6 +126,11 @@ function Player( inId, isLocal, inIsFirst, inIsWebVR, camera, inScene ) {
 	}
 
 
+	function getMesh() {
+		return mesh; 
+	}
+
+
 	return {
 		id: id, 
 		update: update, 
@@ -160,6 +139,8 @@ function Player( inId, isLocal, inIsFirst, inIsWebVR, camera, inScene ) {
 		getUpdateData: getUpdateData, 
 		getAllData: getAllData, 
 		changePainterThickness: changePainterThickness, 
-		setLeftMouseDown: setLeftMouseDown
+		setPaintColor: setPaintColor,
+		setLeftMouseDown: setLeftMouseDown, 
+		getMesh: getMesh
 	}; 
 }

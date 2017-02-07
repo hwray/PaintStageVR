@@ -1,29 +1,32 @@
 var Core = function() {
 
 	// Globals
-	var player; 
-	var otherPlayers = { }; 
-	var cursorObjects = [ ]; 
-	var draggableObjects = [ ]; 
-	var isWebVR = false; 
-	var clock = new THREE.Clock(); 
-
-	var middleMouseDown = false; 
+	var player; 					// local player object
+	var otherPlayers = { }; 		// map of other / remote players by their IDs
+	var cursorObjects = [ ]; 		// list of objects to check for intersection with SphericalCursor
+	var draggableObjects = [ ]; 	// list of objects that are draggable ( object.userData.isDraggable = true )
+	var isWebVR = false; 			// is the user's browser WebVR capable? 
+	var middleMouseDown = false; 	// is the middle mouse button currently pressed? 
+	var clock = new THREE.Clock(); 	// Three.js clock for calculating update delta times
 
 	// Events
 	window.addEventListener( 'resize', onWindowResize, false );
 	window.addEventListener( 'mousedown', onMouseDown, false ); 
 	window.addEventListener( 'mouseup', onMouseUp, false ); 
-	window.addEventListener( "DOMMouseScroll", onScroll, false ); // for Firefox
-	window.addEventListener( "mousewheel",    onScroll, false ); // for everyone else
+	window.addEventListener( "DOMMouseScroll", onScroll, false ); 
+	window.addEventListener( "mousewheel",    onScroll, false ); 
 
 
 	function init() {
 
+		// Init Three.js scene
 		Scene.init(); 
 
+		// Init events for locking and unlocking cursor
 		initPointerLockEvents(); 
 
+		// TODO: Init WebVR
+		/*
 		isWebVR = WebVR.isAvailable(); 
 
 		if ( isWebVR ) {
@@ -37,9 +40,284 @@ var Core = function() {
 		} else {
 
 			console.log( "No WebVR available!" ); 
-			//document.body.appendChild( WebVR.getMessage() );
+			document.body.appendChild( WebVR.getMessage() );
+
+		}*/
+	}
+
+
+	function update() {
+
+		if ( player ) {
+
+			// Get time since last update
+			var delta = clock.getDelta(); 
+
+			// Update local player controls
+			Controls.update( delta ); 
+
+			// Update local player paint and interactions
+			player.update(); 
+
+			// Update and render the Three.js scene
+			Scene.update( delta ); 
+
+			// Return updated local data to Client for broadcasting to other players
+			return getUpdateData(); 
+
+			// TODO: Update / render WebVR 
+			/*
+			if ( isWebVR ) {
+				effect.render( Scene.getScene(), Scene.getCamera() ); 
+			} else {
+				renderer.render( Scene.getScene(), Scene.getCamera() );
+			}
+			*/
+		}
+
+		return null; 
+	}
+
+
+	function createPlayer( data ) {
+
+		console.log( "CREATING LOCAL PLAYER: " + data.id ); 
+
+		// Create and store the local player
+		player = new Player( data.id, true, data.isFirst, isWebVR, Scene.getCamera(), Scene.getScene() ); 
+
+		// Init controls
+		Controls.init( Scene.getCamera(), Scene.getScene(), isWebVR, data.isFirst ? 1.8 : 0.18 ); 
+	}
+
+
+	function updateFromNetwork( data ) {
+		// Got updated remote data from other player
+
+		if ( player && player.id == data.id ) {
+			// Should not be receiving remote data for the local player 
+			return; 
+		}
+
+		if ( otherPlayers[ data.id ] ) {
+
+			// Update the other player with their new remote data
+			otherPlayers[ data.id ].updateFromNetwork( data );
+		}
+	}
+
+
+	function updateAllFromNetwork( data ) {
+		// Got comprehensive state of another player from server (upon first joining existing game)
+
+		// Add other player
+		var otherPlayer = addOtherPlayer( data ); 
+
+		if ( otherPlayer ) {
+
+			// Update the other player with their current network data
+			otherPlayer.updateFromNetwork( data ); 
+		}
+	}
+
+
+	function addOtherPlayer( data ) {
+		// A new player has joined the game
+
+		if ( !data.id || player && player.id == data.id ) {
+			// Should not add remote players without an ID, or remote players whose ID matches the local player
+			return; 
+		} 
+
+		console.log( "CREATING OTHER PLAYER: " + data.id ); 
+
+		// Create and store new remote player from the network
+		otherPlayers[ data.id ] = new Player( data.id, false, data.isFirst, false, Scene.getCamera(), Scene.getScene() ); 
+
+	    return otherPlayers[ data.id ]; 
+	}
+
+
+	function removeOtherPlayer( id ) {
+		// Other player has left the game
+
+		if ( otherPlayers[ id ] ) {
+
+			// Remove the player from the local game and the list of other players
+		    Scene.getScene().remove( otherPlayers[ id ].getMesh() );
+		    delete otherPlayers[ id ]; 
+		}
+	}
+
+
+
+	function getUpdateData() {
+		// Get updated data from the local player to broadcast to server
+
+		if ( player ) {
+
+			var data = player.getUpdateData(); 						// player paint strokes and interactions since last update
+			data.pos = Controls.getPosition(); 						// player position
+			data.dir = Controls.getDirection(); 					// player direction / rotation
+			data.drag = [ SphericalCursor.getDraggedObjectData() ]; // player's dragged object name and position
+			data.light = getSpotLightState(); 						// spotlight state
+			return data; 
+		}
+
+		return null; 
+	}
+
+
+	function getAllData() {
+		// Get comprehensive data from this player to send to new player
+
+		if ( player ) {
+
+			var data = player.getAllData(); 						// all player paint strokes and interactions since start of game
+			data.pos = Controls.getPosition(); 						// player position
+			data.dir = Controls.getDirection(); 					// player direction / rotation
+			data.drag = getDraggableObjectData(); 					// state of all draggable objects
+			data.light = getSpotLightState(); 						// spotlight state
+			return data; 
+		}
+
+		return null; 
+	}
+
+
+	function getCursorObjects() {
+		return cursorObjects; 
+	}
+
+
+	function addCursorObject( object, isDraggable ) {
+		// Add a new object to the list of objects that interact with SphericalCursor
+
+		if ( isDraggable ) {
+			// Object is draggable
+
+			object.userData.draggable = true; 
+			draggableObjects.push( object ); 
+		}
+
+		Scene.getScene().add( object ); 
+		cursorObjects.push( object ); 
+	}
+
+
+	function getDraggableObjectData() {
+		// Get current state for all draggable objects
+
+		var data = [ ]; 
+
+		for ( var i = 0; i < draggableObjects.length; i++ ) {
+
+			var object = draggableObjects[i]; 
+
+			data.push( { 
+				name: object.name, 
+				pos: object.position 
+			} );  
+		}
+
+		return data; 
+	}
+
+
+	function toggleSpotlight() {
+		// Toggle the Three.js spotlight on/off
+
+		// TODO: Set some kind of timeout to avoid toggling each frame the left mouse is clicked? 
+		Scene.getSpotLight().intensity = getSpotLightState() ? 0 : 1; 
+	}
+
+
+	function getSpotLightState() {
+		return Scene.getSpotLight().intensity > 0;
+	}
+
+
+	function setSpotLight( bool ) {
+		Scene.getSpotLight().intensity = bool ? 1 : 0; 
+	}
+
+
+	function setPaintColor( color ) {
+		player.setPaintColor( color ); 
+	}
+
+
+	function onMouseDown( event ) {
+
+		if ( event.button == 0 ) {
+			// Left click
+
+			// Player should paint
+			player.setLeftMouseDown( true ); 
+			SphericalCursor.setLeftMouseDown( true ); 
+
+		} else if ( event.button == 1 ) {
+			// Middle click
+
+			middleMouseDown = true;  
+
+		} else if ( event.button == 2 ) {
+			// Right click
+
+			SphericalCursor.setRightMouseDown( true ); 
 
 		}
+	}
+
+
+	function onMouseUp( event ) {
+
+		if ( event.button == 0 ) {
+
+			player.setLeftMouseDown( false ); 
+			SphericalCursor.setLeftMouseDown( false )
+
+		} else if ( event.button == 1 ) {
+
+			middleMouseDown = false; 
+
+		} else if ( event.button == 2 ) {
+			
+			SphericalCursor.setRightMouseDown( false ); 
+		}
+	}
+
+
+	function onScroll( event ){
+
+		var direction = ( event.detail < 0 || event.wheelDelta > 0 ) ? 1 : -1;
+
+		if ( middleMouseDown ) {
+
+			player.changePainterThickness( direction ); 
+			//SphericalCursor.changeScale( direction ); 
+
+		} else {
+
+			SphericalCursor.updateCurrentDistance( direction ); 
+		}
+	}
+
+
+	function onWindowResize() {
+
+		Scene.getCamera().aspect = window.innerWidth / window.innerHeight;
+		Scene.getCamera().updateProjectionMatrix();
+
+		Scene.setSize( window.innerWidth, window.innerHeight );
+
+		// TODO: Resize WebVR effect
+		/*
+		if ( isWebVR ) {
+			effect.setSize( window.innerWidth, window.innerHeight );
+		} else {
+			renderer.( window.innerWidth, window.innerHeight );
+		}*/
 	}
 
 
@@ -58,8 +336,11 @@ var Core = function() {
 			var pointerlockchange = function ( event ) {
 
 				if ( document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element ) {
+					// Pointer is locked
 
 					if ( player ) {
+
+						// Enable controls and player updating
 						Controls.setEnabled( true ); 
 						player.setEnabled( true ); 
 					}
@@ -67,8 +348,11 @@ var Core = function() {
 					blocker.style.display = 'none';
 
 				} else {
+					// Pointer is unlocked
 
 					if ( player ) {
+
+						// Disable controls and player updating
 						Controls.setEnabled( false ); 
 						player.setEnabled( false ); 
 					}
@@ -113,244 +397,6 @@ var Core = function() {
 	}
 
 
-	function update() {
-
-		if ( player ) {
-
-			Controls.update(); 
-
-			var delta = clock.getDelta(); 
-
-			player.update(); 
-
-/*
-			if ( isWebVR ) {
-				effect.render( Scene.getScene(), Scene.getCamera() ); 
-			} else {
-				renderer.render( Scene.getScene(), Scene.getCamera() );
-			}
-*/
-
-			Scene.update( delta ); 
-
-			return getUpdateData(); 
-		}
-
-		return null; 
-	}
-
-
-	function onWindowResize() {
-
-		Scene.getCamera().aspect = window.innerWidth / window.innerHeight;
-		Scene.getCamera().updateProjectionMatrix();
-
-		/*if ( isWebVR ) {
-			effect.setSize( window.innerWidth, window.innerHeight );
-		} else {*/
-			Scene.setSize( window.innerWidth, window.innerHeight );
-		//}
-	}
-
-
-	function createPlayer( data ) {
-
-		console.log("CREATING LOCAL PLAYER: " + data.id + " " + data.isFirst); 
-
-		player = new Player( data.id, true, data.isFirst, isWebVR, Scene.getCamera(), Scene.getScene() ); 
-
-		Controls.init( Scene.getCamera(), Scene.getScene(), isWebVR, data.isFirst ? 1.8 : 0.18 ); 
-	}
-
-
-	function updateFromNetwork( data ) {
-		if ( player && player.id == data.id ) {
-			return; 
-		}
-
-		if ( otherPlayers[ data.id ] ) {
-
-			otherPlayers[ data.id ].updateFromNetwork( data );
-		}
-	}
-
-
-	function updateAllFromNetwork( data ) {
-
-		var otherPlayer = addOtherPlayer( data ); 
-
-		if ( otherPlayer ) {
-			otherPlayer.updateFromNetwork( data ); 
-		}
-	}
-
-
-	function addOtherPlayer( data ) {
-
-		if ( !data.id || player && player.id == data.id ) {
-			return; 
-		} 
-
-		console.log("CREATING OTHER PLAYER: " + data.id + " " + data.isFirst); 
-
-		var otherPlayer = new Player( data.id, false, data.isFirst, false, Scene.getCamera(), Scene.getScene() ); 
-
-	    otherPlayers[ data.id ] = otherPlayer;
-
-	    return otherPlayer; 
-
-	}
-
-
-	function removeOtherPlayer( id ) {
-
-	    Scene.getScene().remove( otherPlayers[ id ].mesh );
-
-	    delete otherPlayers[ id ]; 
-	}
-
-
-
-	function getUpdateData() {
-
-		if ( player ) {
-
-			var data = player.getUpdateData(); 
-			data.pos = Controls.getPosition(); 
-			data.dir = Controls.getDirection(); 
-			data.drag = [ SphericalCursor.getDraggedObjectData() ]; 
-			data.light = getSpotLightState(); 
-			return data; 
-		}
-
-		return null; 
-	}
-
-
-	function getAllData() {
-
-		if ( player ) {
-
-			var data = player.getAllData(); 
-			data.pos = Controls.getPosition(); 
-			data.dir = Controls.getDirection(); 
-			data.drag = /*Core.*/getDraggableObjectData(); 
-			data.light = getSpotLightState(); 
-			return data; 
-		}
-
-		return null; 
-	}
-
-
-	function getCursorObjects() {
-		return cursorObjects; 
-	}
-
-
-	function addCursorObject( object, isDraggable ) {
-
-		if ( isDraggable ) {
-			object.userData.draggable = true; 
-			draggableObjects.push( object ); 
-		}
-
-		Scene.getScene().add( object ); 
-		cursorObjects.push( object ); 
-	}
-
-
-	function getDraggableObjectData() {
-
-		var data = [ ]; 
-
-		for ( var i = 0; i < draggableObjects.length; i++ ) {
-			var object = draggableObjects[i]; 
-			data.push( { 
-				name: object.name, 
-				pos: object.position 
-			} );  
-		}
-
-		return data; 
-	}
-
-
-	var canToggle = true; 
-	function toggleSpotlight() {
-		if ( !canToggle ) {
-			return; 
-		}
-
-		Scene.getSpotLight().intensity = getSpotLightState() ? 1 : 0; 
-		canToggle = false; 
-
-		setTimeout( function( ) { 
-			canToggle = true; 
-		}, 1000);
-	}
-
-
-	function getSpotLightState() {
-		return Scene.getSpotLight().intensity == 0;
-	}
-
-	function setSpotLight( bool ) {
-		Scene.getSpotLight().intensity = bool ? 1 : 0; 
-	}
-
-
-
-	function onMouseDown( event ) {
-
-		if ( event.button == 0 ) {
-
-			player.setLeftMouseDown( true ); 
-
-		} else if ( event.button == 1 ) {
-
-			middleMouseDown = true;  
-
-		} else if ( event.button == 2 ) {
-
-			SphericalCursor.setRightMouseDown( true ); 
-
-		}
-	}
-
-
-	function onMouseUp( event ) {
-
-		if ( event.button == 0 ) {
-
-			player.setLeftMouseDown( false ); 
-
-		} else if ( event.button == 1 ) {
-
-			middleMouseDown = false; 
-
-		} else if ( event.button == 2 ) {
-
-			SphericalCursor.setRightMouseDown( false ); 
-		}
-	}
-
-
-	function onScroll( event ){
-
-		var direction = ( event.detail < 0 || event.wheelDelta > 0 ) ? 1 : -1;
-
-		if ( middleMouseDown ) {
-
-			player.changePainterThickness( direction ); 
-
-		} else {
-
-			SphericalCursor.updateCurrentDistance( direction ); 
-		}
-	}
-
-
 
 
 	return {
@@ -366,7 +412,8 @@ var Core = function() {
 		getCursorObjects: getCursorObjects, 
 		addCursorObject: addCursorObject, 
 		toggleSpotlight: toggleSpotlight, 
-		setSpotLight: setSpotLight
+		setSpotLight: setSpotLight, 
+		setPaintColor: setPaintColor
 	}; 
 
 }(); 

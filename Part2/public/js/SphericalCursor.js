@@ -3,23 +3,31 @@ var SphericalCursor = function() {
 	// CONSTANTS
 	var SENSITIVITY = 5000;              			// to adjust how sensitive the mouse control is
 	var DISTANCE_SCALE_FACTOR = -0.3;  			// to scale down the cursor based on its collision distance
-	var DEFAULT_CURSOR_SCALE = 0.1;     				// scale to set the cursor if no raycast hit is found
+	var DEFAULT_SCALE = 0.1;     				// scale to set the cursor if no raycast hit is found
 	var HIGHLIGHT_COLOR = 0x66ffff; 				// highlight tint for objects selected with cursor
 	var DEFAULT_COLOR = 0xfffffff; 					// default object tint
-	var SCROLL_WHEEL_SENSITIVITY = 0.25; 
-	var MAX_CURSOR_DISTANCE = 20; 
-	var MIN_CURSOR_DISTANCE = 0.5
+	var SCROLL_WHEEL_SENSITIVITY = 0.1; 
+	var MAX_DISTANCE = 10; 
+	var MIN_DISTANCE = 0.1; 
+	var MAX_SCALE = 2; 
+	var MIN_SCALE = 0.2; 
 
 	// Globals
 	var enabled = false						// controls whether the cursor is active
 	var mouse = new THREE.Vector3( 0, 0, 0.5 ); 	// tracks the mouse X and Y movement
 	var hit = null; 								// tracks the current object being intersected by the cursor
-	var raycaster = new THREE.Raycaster();			// raycaster for getting intersects
 	var cursor; 
-	var currDistance = 10;             			// maximum distance to raycast
+	var currColor = 0x00ffff; 
+	var currScale = 1; 
+	var currDistance = 5;             			// maximum distance to raycast
+	var currPos = new THREE.Vector3(); 
+	var raycaster = new THREE.Raycaster();			// raycaster for getting intersects
 	raycaster.far = currDistance;  					// set max distance to raycast
+	
+
 	var camera; 
 
+	var leftMouseDown = false; 
 	var rightMouseDown = false; 
 	var dragObject = null; 
 
@@ -86,6 +94,8 @@ var SphericalCursor = function() {
 		updateCursor(); 
 
 		updateDrag(); 
+
+		updateInteractions(); 
 	}
 
 
@@ -117,18 +127,21 @@ var SphericalCursor = function() {
 
 			// Reset previous hit object to default color
 			//hit.object.material.color.set( DEFAULT_COLOR ); 
+			cursor.material.color.setHex( currColor ); 
 
 		} else if ( intersect ) {
 			// Hit object
+
+			cursor.material.color.setHex( 0xffffff );  
 
 			if ( hit ) {
 				// Handle previous hit object
 
 				// If previous hit object is the same as the new one, store the new intersect and return without changing colors
-				if ( hit.object == intersect.object ) {
+				/*if ( hit.object == intersect.object ) {
 					hit = intersect; 
 					return; 
-				}
+				}*/
 
 				// Reset current hit object's color to default
 				//hit.object.material.color.set( DEFAULT_COLOR );
@@ -145,14 +158,16 @@ var SphericalCursor = function() {
 
 	function updateCursor() {
 
+		var distance = 0; 
+		var goalPos = new THREE.Vector3(); 
+
 		if ( hit ) {
 
 			// Position cursor at intersection point
-			cursor.position.copy( hit.point ); 
+			goalPos.copy( hit.point ); 
+			// cursor.position.copy( hit.point ); 
 
-			// Scale cursor by distance and DISTANCE_SCALE_FACTOR
-			var scale = ( hit.distance * DISTANCE_SCALE_FACTOR + 1.0 ) / 2.0; 
-			cursor.scale.set( scale, scale, scale ); 
+			distance = hit.distance; 
 
 		} else {
 
@@ -161,11 +176,26 @@ var SphericalCursor = function() {
 			// - Normalize raycaster direction vector (which points to mouse's position in 3D space) to set length = 1
 			// - Multiply vector by sphereRadius to set length = sphereRadius
 			// - Add vector to raycaster origin (camera position) to get mouse's position in 3D space at sphereRadius distance from camera
-			cursor.position.copy( raycaster.ray.origin.add( raycaster.ray.direction.normalize().multiplyScalar( currDistance ) ) ); 
+			//cursor.position.copy( raycaster.ray.origin.add( raycaster.ray.direction.normalize().multiplyScalar( currDistance ) ) ); 
+			goalPos.copy( raycaster.ray.origin.add( raycaster.ray.direction.normalize().multiplyScalar( currDistance ) ) ); 
 
-			// Scale cursor to default scale
-			cursor.scale.set( DEFAULT_CURSOR_SCALE, DEFAULT_CURSOR_SCALE, DEFAULT_CURSOR_SCALE ); 
+			distance = currDistance; 
 		}
+
+		// Lerp cursor from current to goal position
+		lerpPosition( goalPos ); 
+
+		// Scale cursor according to current distance
+		var scale = ( distance / MAX_DISTANCE ) * DEFAULT_SCALE; 
+		cursor.scale.set( scale, scale, scale ); 
+	}
+
+
+	function lerpPosition( goalPos ) {
+
+		currPos.lerp( goalPos, 0.9 ); 
+
+		cursor.position.copy( currPos ); 
 	}
 
 
@@ -195,6 +225,18 @@ var SphericalCursor = function() {
 	}
 
 
+	function updateInteractions() {
+
+		if ( hit && leftMouseDown ) {
+			if ( hit.object.userData.isColorPalette ) {
+				Core.setPaintColor( hit.object.userData.color ); 
+			} else if ( hit.object.userData.isSpotLightControl ) {
+				Core.toggleSpotlight(); 
+			}
+		}
+	}
+
+
 	function onMouseMove( event ) {
 
 		if ( !enabled ) {
@@ -207,6 +249,11 @@ var SphericalCursor = function() {
 		// Move mouse position based on sensitivity
 		mouse.x += movementX / SENSITIVITY; 
 		mouse.y -= movementY / SENSITIVITY; 
+	}
+
+
+	function setLeftMouseDown( bool ) {
+		leftMouseDown = bool; 
 	}
 
 
@@ -247,6 +294,7 @@ var SphericalCursor = function() {
 
 
 	function setColor( colorHex ) {
+		currColor = colorHex; 
 		cursor.material.color.setHex( colorHex ); 
 	}
 
@@ -255,9 +303,16 @@ var SphericalCursor = function() {
 
 		currDistance += direction * SCROLL_WHEEL_SENSITIVITY; 
 
-		currDistance = Math.min( Math.max( currDistance, MIN_CURSOR_DISTANCE ), MAX_CURSOR_DISTANCE )
+		currDistance = Math.min( Math.max( currDistance, MIN_DISTANCE ), MAX_DISTANCE )
 
 		raycaster.far = currDistance; 
+	}
+
+
+	function changeScale( direction ) {
+		currScale += direction * SCALE_SENSITIVITY; 
+		currDistance = Math.min( Math.max( currDistance, MIN_SCALE ), MAX_SCALE )
+
 	}
 
 
@@ -266,11 +321,12 @@ var SphericalCursor = function() {
 		update: update, 
 		setEnabled: setEnabled, 
 		getCursor: getCursor, 
-		getIntersect: getIntersect, 
+		setLeftMouseDown: setLeftMouseDown,
 		setRightMouseDown: setRightMouseDown, 
 		getDraggedObjectData: getDraggedObjectData, 
 		setColor: setColor, 
-		updateCurrentDistance: updateCurrentDistance
+		updateCurrentDistance: updateCurrentDistance, 
+		changeScale: changeScale
 	};
 
 }();

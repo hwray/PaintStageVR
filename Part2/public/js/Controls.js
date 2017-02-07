@@ -1,9 +1,11 @@
 var Controls = function() {
 
-	var isWebVR = false; 
+	// Globals
+	var isWebVR = false; 	// is the user's browser WebVR capable? 
 
 
 	function init( camera, scene, inIsWebVR, height ) {
+		// Initialize local player controls
 
 		isWebVR = inIsWebVR; 
 
@@ -19,7 +21,8 @@ var Controls = function() {
 	}
 
 
-	function update() {
+	function update( delta ) {
+		// Update local player controls
 
 		if ( isWebVR ) {
 
@@ -27,14 +30,17 @@ var Controls = function() {
 
 		} else {
 
-			DesktopControls.update(); 
+			DesktopControls.update( delta ); 
 		}
 	}
 
 
 	function setEnabled( bool ) {
+		// Enable or disable local player controls
 
 		if ( isWebVR ) {
+
+			// TODO: ViveControls.setEnabled( bool ); 
 
 		} else {
 
@@ -44,8 +50,11 @@ var Controls = function() {
 
 
 	function getPosition() {
+		// Get the position of the local player
 
 		if ( isWebVR ) {
+
+			// TODO: ViveControls.getPosition(); 
 
 		} else {
 
@@ -55,14 +64,18 @@ var Controls = function() {
 
 
 	function getDirection() {
+		// Get the direction / rotation of the local player
 
 		if ( isWebVR ) {
+
+			// TODO: ViveControls.getDirection(); 
 
 		} else {
 			
 			return DesktopControls.getDirection(); 	
 		}
 	}
+
 
 
 	return {
