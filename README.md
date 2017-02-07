@@ -3,9 +3,6 @@
 
 # PaintStage
 
-
-## Overview
-
 PaintStage is a Three.js + WebVR tool for collaborative 3D painting and scene building. It can be used as a shared virtual space for asymmetrical games, improv theater, free-form role-playing, and other forms of creative expression and performance. 
 
 ![paintstage-gif-2](http://i.imgur.com/BcLFErJ.gif)
