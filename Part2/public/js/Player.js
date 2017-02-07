@@ -57,13 +57,9 @@ function Player( inId, isLocal, inIsFirst, inIsWebVR, camera, inScene ) {
 	    mesh.position.set( data.pos.x, data.pos.y, data.pos.z ); 
 	    mesh.rotation.set( data.dir.x, data.dir.y, data.dir.z ); 
 
-	    for ( var i = 0; i < data.strokes.length; i++ ) {
-
-	    	var stroke = data.strokes[i]; 
-
-	    	painter.updateFromNetwork( stroke ); 
-	    }
-
+	    if (data.strokes.length > 0) {
+		    painter.updateFromNetwork( data.strokes ); 
+		}
 
     	for ( var i = 0; i < data.drag.length; i++ ) {
 

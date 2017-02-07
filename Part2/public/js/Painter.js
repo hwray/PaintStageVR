@@ -20,6 +20,7 @@ function Painter( scene, isLocal ) {
 	var matrix2 = new THREE.Matrix4(); 
 	var allStrokes = [ ]; 
 	var newStrokes = [ ]; 
+	var batchedStrokes = [ ]; 
 	var minThickness = 0.001; 
 	var maxThickness = 0.5; 
 	var thickness = 0.01; 
@@ -230,6 +231,13 @@ function Painter( scene, isLocal ) {
 			stroke( color, point1, point2, matrix1, matrix2, thickness ); 
 
 			newStrokes.push( [ colorHex, point1.clone(), point2.clone(), matrix1.clone(), matrix2.clone(), thickness ] ); 
+
+		} else {
+
+			batchedStrokes = batchedStrokes.concat( newStrokes ); 
+
+			newStrokes = [ ]; 
+
 		}
 
 		point2.copy( point1 );
@@ -239,14 +247,19 @@ function Painter( scene, isLocal ) {
 	}
 
 
-	function updateFromNetwork( stroke ) {
+	function updateFromNetwork( strokes ) {
 
 	    var count = line.geometry.drawRange.count; 
 
-	    colorHex = stroke[0]; 
-	    color.set( colorHex ); 
+	    for ( var i = 0; i < strokes.length; i++ ) {
 
-	    this.stroke( color, stroke[1], stroke[2], stroke[3], stroke[4], stroke[5] ); 
+	    	var stroke = strokes[i];
+
+	    	colorHex = stroke[0]; 
+		    color.set( colorHex ); 
+
+		    this.stroke( color, stroke[1], stroke[2], stroke[3], stroke[4], stroke[5] ); 
+	    }
 
 	    updateGeometry( count, line.geometry.drawRange.count ); 
 
@@ -262,11 +275,18 @@ function Painter( scene, isLocal ) {
 
 	function getUpdateData() {
 
+		var result = batchedStrokes.slice(); 
+
+		allStrokes = allStrokes.concat( batchedStrokes ); 
+
+		batchedStrokes = [ ]; 
+
+/*
 		var result = newStrokes.slice(); 
 
 		allStrokes = allStrokes.concat( newStrokes ); 
 
-		newStrokes = [ ]; 
+		newStrokes = [ ];*/ 
 
 		return result; 
 	}

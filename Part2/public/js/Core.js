@@ -147,6 +147,8 @@ var Core = function() {
 		    Scene.getScene().remove( otherPlayers[ id ].getMesh() );
 		    delete otherPlayers[ id ]; 
 		}
+
+		// TODO: Remove paint objects for this player? 
 	}
 
 
