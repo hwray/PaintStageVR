@@ -6,7 +6,7 @@
 
 ## Overview
 
-PaintStage is a Three.js + WebVR tool for asymmetrical games, improv theater, role-playing, and collaborative art. Using the immersive and perspective-changing potential of VR, PaintStage allows for creative expression and performance together in a shared virtual space. 
+PaintStage is a Three.js + WebVR tool for collaborative 3D painting and scene building. It also serves as a free-form shared space for asymmetrical games, improv theater, role-playing, and more. Using the immersive and perspective-changing potential of VR, PaintStage allows for creative expression and performance together in a shared virtual space. 
 
 
 ![paintstage-gif-2](http://i.imgur.com/BcLFErJ.gif)
@@ -15,14 +15,9 @@ PaintStage is a Three.js + WebVR tool for asymmetrical games, improv theater, ro
 ## Instructions
 
 * The first player to join the game is the **Director.** He or she can paint objects / environments and arrange props to help set the scene for the miniature Actors. 
-    * Use thick brush strokes to sketch out an environment for the stage, then progress to thinner strokes to create environmental details and props for your Actors. 
-    * Complete the scene by grabbing and dragging a variety of static geometry or animated assets to use as props. 
     * As the scene plays out, you can grab the spotlight overhead to adjust its position and intensity - perfect for dimming the lights during scene changes, or focusing the spotlight on a dramatic performance! 
 
-* All players after the first player are miniature **Actors.** They can explore the environment created by the Director and help act out the scene using VR motion controls (or 2D keyboard/mouse controls). 
-	* Actors appear at 1/10 scale atop the "stage", around chest-height of the Director. 
-	* Explore the stage created 
-    * Actors also have the ability to paint and move objects. They can help the Director fill in the small details of the stage environment, interact with objects the Director places on stage, or paint their own props on the fly.
+* All players after the first player are miniature **Actors.** Actors appear at 1/10 scale atop the "stage," where they can explore the environment created by the Director and interact with the scene using VR motion controls (or 2D keyboard/mouse controls). 
 
 * Each player has their own randomized paint palette, as well as a selection of static and animated assets that they can grab and move within the scene. 
     * All players, paint strokes, props, and lights are replicated over the network in real-time using Socket.io. The scene is completely shared, allowing players to play and create together in real time. 
@@ -30,8 +25,7 @@ PaintStage is a Three.js + WebVR tool for asymmetrical games, improv theater, ro
 * PaintStage is a blank slate application with no rules or restrictions. Don't feel constrained by the basic premise outlined above! Other potential use cases include:  
     * Visual improv-based games, such as Charades or Pictionary
     * Drawing-based chat
-    * Games that involve asymmetry and/or role-playing, such as Dungeons & Dragons (the Director fills the role of the Dungeon Master, creating environments and enemies; the Actors become miniature adventurers, exploring the world the DM has created on the stage)
-    * A tool for reversing social power dynamics and combating anxiety - reduce the potential stress of communicating with someone in VR by making them appear to be 1/10 your size, or putting them in a silly costume that only you can see! 
+    * Games that involve asymmetry and/or role-playing, such as Dungeons & Dragons
     * A base template for other creative and artistic apps: sculpting, virtual graffiti, etc. 
 
 
@@ -57,7 +51,7 @@ PaintStage is a Three.js + WebVR tool for asymmetrical games, improv theater, ro
 ## Disclaimers, Known Issues, & Limitations
 
 * The game server is extremely minimal.
-    * The server essentially functions as a bare-bones peer-to-peer message passer. Clients send their updated local data to the server after each animation frame (or in the case of paint objects, after a paint stroke is finished). The server broadcasts that data directly to all other players to update their local game states. 
+    * The server functions as a minimal peer-to-peer message passer. Clients send their updated local data to the server after each animation frame, and the server broadcasts that data directly to all other players. 
     * The server does not run its own update loop, does not perform any prediction or interpolation of client states, and does not maintain a secure and authoritative copy of the game state (or any game state at all). 
     * There is no support for multiple game rooms / lobbies, and no way to adjust the "tick rate" at which the game server sends data. 
     * All game state exists on the client side, making it trivial for users to edit their own game data or the data of other players. 
@@ -105,17 +99,11 @@ The code is structured on the classic JavaScript module pattern. PaintStage was 
 
 ## Acknowledgments
 
-Small pieces of the project are based on (but NOT copy-pasted from!) the work of others. 
+Small pieces of the project are based on (but not copy-pasted from!) the work of others. 
 
-* Parts of the DesktopControls.js code are based on the official [Three.js PointerLockControls example,](https://threejs.org/examples/#misc_controls_pointerlock) as well as the internal implementation of PointerLockControls itself. Major changes include: 
-	* Created Controls module to integrate SphericalCursor with keyboard movement and look controls.
-	* Reimplemented PointerLockControls to use arrow keys instead of mouse for looking.
-	* Reimplemented WASD controls and collisions to accomodate players of different heights/sizes, and more. 
+* Parts of the DesktopControls.js code are based on the official [Three.js PointerLockControls example.](https://threejs.org/examples/#misc_controls_pointerlock)
 
-* Parts of the Painter.js code are based on the official [Three.js Vive Paint example.](https://threejs.org/examples/#webvr_vive_paint) Enhancements include: 
-	* Added the ability to change the paint stroke thickness. 
-	* Adapted paint controls to use SphericalCursor and DesktopControls instead of Vive controllers. 
-	* Implemented full network replication of all painted objects, and more. 
+* Parts of the Painter.js code are based on the official [Three.js Vive Paint example.](https://threejs.org/examples/#webvr_vive_paint)
 
 * JSON models are courtesy of the official Three.js examples, as well as Chris Milk's [ROME / 3 Dreams of Black project.](http://www.ro.me/tech/)
 
