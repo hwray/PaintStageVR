@@ -7,7 +7,7 @@ function Player( inId, isLocal, inIsFirst, inIsWebVR, camera, inScene ) {
 	var isWebVR = inIsWebVR; 
 	var isEnabled = false; 
 	var leftMouseDown = false; 
-	var size = isFirst ? 0.3 : 0.03; 
+	var size = isFirst ? 0.5 : 0.05; 
 	var height = isFirst ? 1.8 : 0.18; 
 	var painter; 
 	var mesh; 

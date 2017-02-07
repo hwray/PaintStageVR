@@ -60,6 +60,7 @@ var DesktopControls = function() {
     	SphericalCursor.init( camera, scene ); 
 	}
 
+
 	function update( delta ) {
 
 		if ( !enabled ) {

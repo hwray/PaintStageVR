@@ -6,6 +6,7 @@ var Core = function() {
 	var cursorObjects = [ ]; 		// list of objects to check for intersection with SphericalCursor
 	var draggableObjects = [ ]; 	// list of objects that are draggable ( object.userData.isDraggable = true )
 	var isWebVR = false; 			// is the user's browser WebVR capable? 
+	var leftMouseDown = false; 
 	var middleMouseDown = false; 	// is the middle mouse button currently pressed? 
 	var clock = new THREE.Clock(); 	// Three.js clock for calculating update delta times
 
@@ -254,6 +255,8 @@ var Core = function() {
 		if ( event.button == 0 ) {
 			// Left click
 
+			leftMouseDown = true; 
+
 			// Player should paint
 			player.setLeftMouseDown( true ); 
 			SphericalCursor.setLeftMouseDown( true ); 
@@ -276,6 +279,8 @@ var Core = function() {
 
 		if ( event.button == 0 ) {
 
+			leftMouseDown = false; 
+
 			player.setLeftMouseDown( false ); 
 			SphericalCursor.setLeftMouseDown( false )
 
@@ -294,7 +299,7 @@ var Core = function() {
 
 		var direction = ( event.detail < 0 || event.wheelDelta > 0 ) ? 1 : -1;
 
-		if ( middleMouseDown ) {
+		if ( leftMouseDown ) {
 
 			player.changePainterThickness( direction ); 
 			//SphericalCursor.changeScale( direction ); 
@@ -355,7 +360,7 @@ var Core = function() {
 					if ( player ) {
 
 						// Disable controls and player updating
-						Controls.setEnabled( false ); 
+						//Controls.setEnabled( false ); 
 						player.setEnabled( false ); 
 					}
 

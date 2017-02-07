@@ -7,7 +7,7 @@ var SphericalCursor = function() {
 	var HIGHLIGHT_COLOR = 0x66ffff; 				// highlight tint for objects selected with cursor
 	var DEFAULT_COLOR = 0xfffffff; 					// default object tint
 	var SCROLL_WHEEL_SENSITIVITY = 0.1; 
-	var MAX_DISTANCE = 10; 
+	var MAX_DISTANCE = 15; 
 	var MIN_DISTANCE = 0.1; 
 	var MAX_SCALE = 2; 
 	var MIN_SCALE = 0.2; 
@@ -19,10 +19,11 @@ var SphericalCursor = function() {
 	var cursor; 
 	var currColor = 0x00ffff; 
 	var currScale = 1; 
-	var currDistance = 5;             			// maximum distance to raycast
+	var currDistance = 7;             			// maximum distance to raycast
 	var currPos = new THREE.Vector3(); 
 	var raycaster = new THREE.Raycaster();			// raycaster for getting intersects
 	raycaster.far = currDistance;  					// set max distance to raycast
+	var goalPos = new THREE.Vector3(); 
 	
 
 	var camera; 
@@ -159,7 +160,6 @@ var SphericalCursor = function() {
 	function updateCursor() {
 
 		var distance = 0; 
-		var goalPos = new THREE.Vector3(); 
 
 		if ( hit ) {
 
@@ -183,17 +183,25 @@ var SphericalCursor = function() {
 		}
 
 		// Lerp cursor from current to goal position
-		lerpPosition( goalPos ); 
+		lerpPosition( goalPos, 0.9 ); 
+		//cursor.position.copy( goalPos ); 
 
 		// Scale cursor according to current distance
 		var scale = ( distance / MAX_DISTANCE ) * DEFAULT_SCALE; 
+
 		cursor.scale.set( scale, scale, scale ); 
+
+		if (hit) {
+			cursor.scale.set( scale * 2, scale * 2, scale * 2 ); 
+		}
+
+		currDistance = distance; 
 	}
 
 
-	function lerpPosition( goalPos ) {
+	function lerpPosition( goalPos, alpha ) {
 
-		currPos.lerp( goalPos, 0.9 ); 
+		currPos.lerp( goalPos, alpha ); 
 
 		cursor.position.copy( currPos ); 
 	}
