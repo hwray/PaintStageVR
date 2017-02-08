@@ -27,6 +27,14 @@ PaintStage is a Three.js + WebVR tool for collaborative 3D painting and scene bu
     * A base template for other creative and artistic apps: sculpting, virtual graffiti, etc. 
 
 
+## Setup
+
+0. Install Node.js, if you don't have it already. 
+1. Download or clone the repo: git clone https://github.com/hwray/PaintStageVR
+2. Navigate to the Part2/ directory using your command line. 
+3. Type "npm install" and wait for dependencies to finish installing. 
+4. Type "node app.js" then visit localhost:3000 in your browser. 
+
 
 ## Controls
 
