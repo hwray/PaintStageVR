@@ -6,16 +6,7 @@ var Core = function() {
 	var cursorObjects = [ ]; 		// list of objects to check for intersection with SphericalCursor
 	var draggableObjects = [ ]; 	// list of objects that are draggable ( object.userData.isDraggable = true )
 	var isWebVR = false; 			// is the user's browser WebVR capable? 
-	var leftMouseDown = false; 
-	var middleMouseDown = false; 	// is the middle mouse button currently pressed? 
 	var clock = new THREE.Clock(); 	// Three.js clock for calculating update delta times
-
-	// Events
-	window.addEventListener( 'resize', onWindowResize, false );
-	window.addEventListener( 'mousedown', onMouseDown, false ); 
-	window.addEventListener( 'mouseup', onMouseUp, false ); 
-	window.addEventListener( "DOMMouseScroll", onScroll, false ); 
-	window.addEventListener( "mousewheel",    onScroll, false ); 
 
 
 	function init() {
@@ -105,6 +96,10 @@ var Core = function() {
 			// Update the other player with their new remote data
 			otherPlayers[ data.id ].updateFromNetwork( data );
 		}
+
+		if ( data.light != null ) {
+			Scene.setSpotLight( data.light ); 
+		}
 	}
 
 
@@ -118,6 +113,10 @@ var Core = function() {
 
 			// Update the other player with their current network data
 			otherPlayer.updateFromNetwork( data ); 
+		}
+
+		if ( data.light != null ) {
+			Scene.setSpotLight( data.light ); 
 		}
 	}
 
@@ -163,7 +162,7 @@ var Core = function() {
 			data.pos = Controls.getPosition(); 						// player position
 			data.dir = Controls.getDirection(); 					// player direction / rotation
 			data.drag = [ SphericalCursor.getDraggedObjectData() ]; // player's dragged object name and position
-			data.light = getSpotLightState(); 						// spotlight state
+			data.light = Scene.getSpotLightChange(); 				// spotlight state
 			return data; 
 		}
 
@@ -180,7 +179,7 @@ var Core = function() {
 			data.pos = Controls.getPosition(); 						// player position
 			data.dir = Controls.getDirection(); 					// player direction / rotation
 			data.drag = getDraggableObjectData(); 					// state of all draggable objects
-			data.light = getSpotLightState(); 						// spotlight state
+			data.light = Scene.getSpotLightState(); 				// spotlight state
 			return data; 
 		}
 
@@ -227,104 +226,8 @@ var Core = function() {
 	}
 
 
-	function toggleSpotlight() {
-		// Toggle the Three.js spotlight on/off
-
-		// TODO: Set some kind of timeout to avoid toggling each frame the left mouse is clicked? 
-		Scene.getSpotLight().intensity = getSpotLightState() ? 0 : 1; 
-	}
-
-
-	function getSpotLightState() {
-		return Scene.getSpotLight().intensity > 0;
-	}
-
-
-	function setSpotLight( bool ) {
-		Scene.getSpotLight().intensity = bool ? 1 : 0; 
-	}
-
-
 	function setPaintColor( color ) {
 		player.setPaintColor( color ); 
-	}
-
-
-	function onMouseDown( event ) {
-
-		if ( event.button == 0 ) {
-			// Left click
-
-			leftMouseDown = true; 
-
-			// Player should paint
-			player.setLeftMouseDown( true ); 
-			SphericalCursor.setLeftMouseDown( true ); 
-
-		} else if ( event.button == 1 ) {
-			// Middle click
-
-			middleMouseDown = true;  
-
-		} else if ( event.button == 2 ) {
-			// Right click
-
-			SphericalCursor.setRightMouseDown( true ); 
-
-		}
-	}
-
-
-	function onMouseUp( event ) {
-
-		if ( event.button == 0 ) {
-
-			leftMouseDown = false; 
-
-			player.setLeftMouseDown( false ); 
-			SphericalCursor.setLeftMouseDown( false )
-
-		} else if ( event.button == 1 ) {
-
-			middleMouseDown = false; 
-
-		} else if ( event.button == 2 ) {
-			
-			SphericalCursor.setRightMouseDown( false ); 
-		}
-	}
-
-
-	function onScroll( event ){
-
-		var direction = ( event.detail < 0 || event.wheelDelta > 0 ) ? 1 : -1;
-
-		if ( leftMouseDown ) {
-
-			player.changePainterThickness( direction ); 
-			//SphericalCursor.changeScale( direction ); 
-
-		} else {
-
-			SphericalCursor.updateCurrentDistance( direction ); 
-		}
-	}
-
-
-	function onWindowResize() {
-
-		Scene.getCamera().aspect = window.innerWidth / window.innerHeight;
-		Scene.getCamera().updateProjectionMatrix();
-
-		Scene.setSize( window.innerWidth, window.innerHeight );
-
-		// TODO: Resize WebVR effect
-		/*
-		if ( isWebVR ) {
-			effect.setSize( window.innerWidth, window.innerHeight );
-		} else {
-			renderer.( window.innerWidth, window.innerHeight );
-		}*/
 	}
 
 
@@ -360,7 +263,7 @@ var Core = function() {
 					if ( player ) {
 
 						// Disable controls and player updating
-						//Controls.setEnabled( false ); 
+						Controls.setEnabled( false ); 
 						player.setEnabled( false ); 
 					}
 
@@ -418,8 +321,6 @@ var Core = function() {
 
 		getCursorObjects: getCursorObjects, 
 		addCursorObject: addCursorObject, 
-		toggleSpotlight: toggleSpotlight, 
-		setSpotLight: setSpotLight, 
 		setPaintColor: setPaintColor
 	}; 
 

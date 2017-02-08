@@ -16,6 +16,7 @@ var Scene = function() {
 	var renderer;
 	var effect;  
 	var spotLight; 
+	var spotLightChanged = false; 
 	var loader; 
 	var mixers = [ ]; 
 	var assetIDs = [ 
@@ -40,6 +41,10 @@ var Scene = function() {
 		"treefrog": 0.007,
 		"stork": 0.006
 	}; 
+
+
+	// Events
+	window.addEventListener( 'resize', onWindowResize, false );
 
 
 	function init() {
@@ -250,13 +255,51 @@ var Scene = function() {
 	}
 
 
-	function getSpotLight() {
-		return spotLight; 
+	function setSpotLight( intensity ) {
+		spotLight.intensity = intensity; 
 	}
 
 
-	function setSize() {
+	function getSpotLightChange() {
+
+		if ( spotLightChanged ) {
+			spotLightChanged = false; 
+			return spotLight.intensity; 
+		} 
+
+		return null; 
+	}
+
+
+	function getSpotLightState() {
+		return spotLight.intensity; 
+	}
+
+
+	function toggleSpotLight() {
+		// Toggle the Three.js spotlight on/off
+
+		// TODO: Set some kind of timeout to avoid toggling each frame the left mouse is clicked? 
+		spotLight.intensity = spotLight.intensity > 0 ? 0 : 1; 
+
+		spotLightChanged = true; 
+	}
+
+
+	function onWindowResize() {
+
+		camera.aspect = window.innerWidth / window.innerHeight;
+		camera.updateProjectionMatrix();
+
 		renderer.setSize( window.innerWidth, window.innerHeight );
+
+		// TODO: Resize WebVR effect
+		/*
+		if ( isWebVR ) {
+			effect.setSize( window.innerWidth, window.innerHeight );
+		} else {
+			renderer.( window.innerWidth, window.innerHeight );
+		}*/
 	}
 
 
@@ -265,8 +308,10 @@ var Scene = function() {
 		update: update, 
 		getScene: getScene, 
 		getCamera: getCamera, 
-		getSpotLight: getSpotLight, 
-		setSize: setSize
+		setSpotLight: setSpotLight, 
+		getSpotLightChange: getSpotLightChange, 
+		toggleSpotLight: toggleSpotLight, 
+		getSpotLightState: getSpotLightState
 	}; 
 
 }(); 

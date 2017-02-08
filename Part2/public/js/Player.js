@@ -12,6 +12,13 @@ function Player( inId, isLocal, inIsFirst, inIsWebVR, camera, inScene ) {
 	var painter; 
 	var mesh; 
 
+	// Events
+	window.addEventListener( 'mousedown', onMouseDown, false ); 
+	window.addEventListener( 'mouseup', onMouseUp, false ); 
+	window.addEventListener( "DOMMouseScroll", onScroll, false ); 
+	window.addEventListener( "mousewheel",    onScroll, false );
+
+
 	// Init
 	if ( !isLocal ) {
 
@@ -74,9 +81,6 @@ function Player( inId, isLocal, inIsFirst, inIsWebVR, camera, inScene ) {
 		    	}
 		    }
 	    }
-
-	    // TODO
-	    Core.setSpotLight( data.light ); 
 	}
 
 
@@ -112,18 +116,38 @@ function Player( inId, isLocal, inIsFirst, inIsWebVR, camera, inScene ) {
 	}
 
 
-	function changePainterThickness( direction ) {
-		painter.changeThickness( direction ); 
-	}
-
-
-	function setLeftMouseDown( bool ) {
-		leftMouseDown = bool; 
-	}
-
-
 	function getMesh() {
 		return mesh; 
+	}
+
+
+	function onMouseDown( event ) {
+
+		if ( event.button == 0 ) {
+			// Left click
+
+			leftMouseDown = true; 
+		}
+	}
+
+
+	function onMouseUp( event ) {
+
+		if ( event.button == 0 ) {
+
+			leftMouseDown = false; 
+		}
+	}
+
+
+	function onScroll( event ){
+
+		var direction = ( event.detail < 0 || event.wheelDelta > 0 ) ? 1 : -1;
+
+		if ( leftMouseDown ) {
+
+			painter.changeThickness( direction ); 
+		}
 	}
 
 
@@ -134,9 +158,7 @@ function Player( inId, isLocal, inIsFirst, inIsWebVR, camera, inScene ) {
 		updateFromNetwork: updateFromNetwork,
 		getUpdateData: getUpdateData, 
 		getAllData: getAllData, 
-		changePainterThickness: changePainterThickness, 
 		setPaintColor: setPaintColor,
-		setLeftMouseDown: setLeftMouseDown, 
 		getMesh: getMesh
 	}; 
 }

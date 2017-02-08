@@ -41,7 +41,7 @@ function Painter( scene, isLocal ) {
 
 
 	function initLine( scene ) {
-		// Create line object that represents strokes via a BufferGeometry that is built up over time
+		// Create line object that represents strokes via a dynamic BufferGeometry
 
 		var geometry = new THREE.BufferGeometry();
 		var positions = new THREE.BufferAttribute( new Float32Array( 1000000 * 3 ), 3 );
@@ -134,6 +134,8 @@ function Painter( scene, isLocal ) {
 			shape = createTubeShape( thickness ); 
 		}
 
+		// Add a new stroke to the painting BufferGeometry, 
+		// by creating a new "tube" shape between the previous stroke point and the current point. 
 		var geometry = line.geometry;
 		var attributes = geometry.attributes;
 		var count = geometry.drawRange.count;
@@ -196,7 +198,7 @@ function Painter( scene, isLocal ) {
 
 
 	function updateGeometry( start, end ) {
-		// Update the line's BufferGeometry
+		// Update the line's BufferGeometry data
 
 		if ( start === end ) return;
 		var offset = start * 3;
@@ -216,38 +218,49 @@ function Painter( scene, isLocal ) {
 
 
 	function update( shouldPaint ) {
-		// TODO: Comment
 
+		// Store current count of line BufferGeometry
 		var count = line.geometry.drawRange.count; 
 
+		// Get SphericalCursor's world matrix
 		var matrix = SphericalCursor.getCursor().matrixWorld; 
 
+		// Set the current stroke point to the cursor world position
 		point1.setFromMatrixPosition( matrix ); 
 
+		// Construct rotation matrix, looking from point2 (the previous stroke point) to point1 (the current stroke point)
 		matrix1.lookAt( point2, point1, up); 
 
 		if ( shouldPaint ) {
 
+			// Add the stroke to the line BufferGeometry
 			stroke( color, point1, point2, matrix1, matrix2, thickness ); 
 
+			// Store the stroke data for later network replication
 			newStrokes.push( [ colorHex, point1.clone(), point2.clone(), matrix1.clone(), matrix2.clone(), thickness ] ); 
 
 		} else {
+			// Player has released left click - paint stroke has ended
 
+			// Add the data from this paint stroke to the list of batched stroke data, to be replicated on the next network update 
 			batchedStrokes = batchedStrokes.concat( newStrokes ); 
 
+			// Clear the new strokes array
 			newStrokes = [ ]; 
 
 		}
 
+		// Store the current paint point / rotation matrix to use as previous for the next update
 		point2.copy( point1 );
 		matrix2.copy( matrix1 );
 
+		// Update the line BufferGeometry based on the new geometry count
 		updateGeometry( count, line.geometry.drawRange.count ); 
 	}
 
 
 	function updateFromNetwork( strokes ) {
+		// Update stroke data from network 
 
 	    var count = line.geometry.drawRange.count; 
 
@@ -274,19 +287,18 @@ function Painter( scene, isLocal ) {
 
 
 	function getUpdateData() {
+		// Return batched strokes for broadcast to the server
 
-		var result = batchedStrokes.slice(); 
+		var result = []; 
 
-		allStrokes = allStrokes.concat( batchedStrokes ); 
+		if ( batchedStrokes.length > 0 ) {
 
-		batchedStrokes = [ ]; 
+			result = batchedStrokes.slice(); 
 
-/*
-		var result = newStrokes.slice(); 
+			allStrokes = allStrokes.concat( batchedStrokes ); 
 
-		allStrokes = allStrokes.concat( newStrokes ); 
-
-		newStrokes = [ ];*/ 
+			batchedStrokes = [ ]; 
+		}
 
 		return result; 
 	}

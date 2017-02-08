@@ -4,13 +4,12 @@ var SphericalCursor = function() {
 	var SENSITIVITY = 5000;              			// to adjust how sensitive the mouse control is
 	var DISTANCE_SCALE_FACTOR = -0.3;  			// to scale down the cursor based on its collision distance
 	var DEFAULT_SCALE = 0.1;     				// scale to set the cursor if no raycast hit is found
-	var HIGHLIGHT_COLOR = 0x66ffff; 				// highlight tint for objects selected with cursor
-	var DEFAULT_COLOR = 0xfffffff; 					// default object tint
 	var SCROLL_WHEEL_SENSITIVITY = 0.1; 
 	var MAX_DISTANCE = 15; 
 	var MIN_DISTANCE = 0.1; 
 	var MAX_SCALE = 2; 
 	var MIN_SCALE = 0.2; 
+	var HIGHLIGHT_INTENSITY = 0.5; 
 
 	// Globals
 	var enabled = false						// controls whether the cursor is active
@@ -34,6 +33,10 @@ var SphericalCursor = function() {
 
 	// Events
 	window.addEventListener( "mousemove", onMouseMove );
+	window.addEventListener( 'mousedown', onMouseDown, false ); 
+	window.addEventListener( 'mouseup', onMouseUp, false ); 
+	window.addEventListener( "DOMMouseScroll", onScroll, false ); 
+	window.addEventListener( "mousewheel",    onScroll, false );
 
 
 
@@ -127,7 +130,8 @@ var SphericalCursor = function() {
 			// No hit object
 
 			// Reset previous hit object to default color
-			//hit.object.material.color.set( DEFAULT_COLOR ); 
+			hit.object.material.color.addScalar( -HIGHLIGHT_INTENSITY );
+
 			cursor.material.color.setHex( currColor ); 
 
 		} else if ( intersect ) {
@@ -139,17 +143,17 @@ var SphericalCursor = function() {
 				// Handle previous hit object
 
 				// If previous hit object is the same as the new one, store the new intersect and return without changing colors
-				/*if ( hit.object == intersect.object ) {
+				if ( hit.object == intersect.object ) {
 					hit = intersect; 
 					return; 
-				}*/
+				}
 
 				// Reset current hit object's color to default
-				//hit.object.material.color.set( DEFAULT_COLOR );
+				hit.object.material.color.addScalar( -HIGHLIGHT_INTENSITY );
 			}
 
 			// Highlight the new hit object
-			//intersect.object.material.color.set( HIGHLIGHT_COLOR ); 
+			intersect.object.material.color.addScalar( HIGHLIGHT_INTENSITY ); 
 		}
 
 		// Store the intersect as the current hit object
@@ -239,7 +243,7 @@ var SphericalCursor = function() {
 			if ( hit.object.userData.isColorPalette ) {
 				Core.setPaintColor( hit.object.userData.color ); 
 			} else if ( hit.object.userData.isSpotLightControl ) {
-				Core.toggleSpotlight(); 
+				Scene.toggleSpotLight(); 
 			}
 		}
 	}
@@ -260,17 +264,6 @@ var SphericalCursor = function() {
 	}
 
 
-	function setLeftMouseDown( bool ) {
-		leftMouseDown = bool; 
-	}
-
-
-	function setRightMouseDown( bool ) {
-		rightMouseDown = bool;
-	}
-
-
-
 	function setEnabled( bool ) {
 
 		enabled = bool; 
@@ -279,11 +272,6 @@ var SphericalCursor = function() {
 
 	function getCursor() {
 		return cursor;  
-	}
-
-
-	function getIntersect() {
-		return hit; 
 	}
 
 
@@ -317,10 +305,45 @@ var SphericalCursor = function() {
 	}
 
 
-	function changeScale( direction ) {
-		currScale += direction * SCALE_SENSITIVITY; 
-		currDistance = Math.min( Math.max( currDistance, MIN_SCALE ), MAX_SCALE )
+	function onMouseDown( event ) {
 
+		if ( event.button == 0 ) {
+			// Left click
+
+			leftMouseDown = true; 
+
+		} else if ( event.button == 2 ) {
+			// Right click
+
+			rightMouseDown = true; 
+		}
+	}
+
+
+	function onMouseUp( event ) {
+
+		if ( event.button == 0 ) {
+			// Left click released
+
+			leftMouseDown = false; 
+
+		} else if ( event.button == 2 ) {
+			// Right click released
+			
+			rightMouseDown = false; 
+		}
+	}
+
+
+	function onScroll( event ) {
+		// Mouse scrolling
+
+		var direction = ( event.detail < 0 || event.wheelDelta > 0 ) ? 1 : -1;
+
+		if ( !leftMouseDown ) {
+
+			updateCurrentDistance( direction ); 
+		}
 	}
 
 
@@ -329,12 +352,8 @@ var SphericalCursor = function() {
 		update: update, 
 		setEnabled: setEnabled, 
 		getCursor: getCursor, 
-		setLeftMouseDown: setLeftMouseDown,
-		setRightMouseDown: setRightMouseDown, 
 		getDraggedObjectData: getDraggedObjectData, 
-		setColor: setColor, 
-		updateCurrentDistance: updateCurrentDistance, 
-		changeScale: changeScale
+		setColor: setColor
 	};
 
 }();
