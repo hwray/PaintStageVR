@@ -1,10 +1,13 @@
 var ViveControls = function() {
 	
-	var CONTROLLER_PATH = '../models/obj/vive-controller/'; 
+	// Constants
+	var CONTROLLER_PATH = '/models/'; 
 	var CONTROLLER_OBJ_FILE = 'vr_controller_vive_1_5.obj'; 
 	var CONTROLLER_TEXTURE_FILE = 'onepointfive_texture.png'; 
 	var CONTROLLER_SPEC_FILE = 'onepointfive_spec.png'; 
+	var UP_VECTOR = new THREE.Vector3( 0, 1, 0 );
 
+	// Globals
 	var controls; 
 	var controller1; 
 	var controller2; 
@@ -74,16 +77,16 @@ var ViveControls = function() {
 
 		updateController( controller1 ); 
 		updateController( controller2 ); 
-
-
 	}
 
 
 	function updateController( controller ) {
 
 		controller.update();
+
 		var pivot = controller.getObjectByName( 'pivot' );
 		if ( pivot ) {
+
 			pivot.material.color.copy( controller.getColor() );
 			var matrix = pivot.matrixWorld;
 			var point1 = controller.userData.points[ 0 ];
@@ -91,10 +94,14 @@ var ViveControls = function() {
 			var matrix1 = controller.userData.matrices[ 0 ];
 			var matrix2 = controller.userData.matrices[ 1 ];
 			point1.setFromMatrixPosition( matrix );
-			matrix1.lookAt( point2, point1, up );
+			matrix1.lookAt( point2, point1, UP_VECTOR );
+
 			if ( controller.getButtonState( 'trigger' ) ) {
-				Core.stroke( controller, point1, point2, matrix1, matrix2 );
+				// TODO: Refactor to integrate better with Painter class
+				//Core.paintStroke( controller.getColor().getHex(), point1, point2, matrix1, matrix2, 0.01 );
+				Core.updatePainterVive( [ [ controller.getColor().getHex(), point1, point2, matrix1, matrix2, 0.01 ] ] )
 			}
+
 			point2.copy( point1 );
 			matrix2.copy( matrix1 );
 		}

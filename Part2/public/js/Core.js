@@ -11,30 +11,23 @@ var Core = function() {
 
 	function init() {
 
+		isWebVR = WebVR.isAvailable(); 
+
 		// Init Three.js scene
-		Scene.init(); 
+		Scene.init( isWebVR ); 
 
 		// Init events for locking and unlocking cursor
 		initPointerLockEvents(); 
 
-		// TODO: Init WebVR
-		/*
-		isWebVR = WebVR.isAvailable(); 
-
 		if ( isWebVR ) {
 
 			console.log("WebVR available!"); 
-
-			effect = new THREE.VREffect( renderer );
-
-			document.body.appendChild( WebVR.getButton( effect ) );
 		
 		} else {
 
 			console.log( "No WebVR available!" ); 
-			document.body.appendChild( WebVR.getMessage() );
-
-		}*/
+			//document.body.appendChild( WebVR.getMessage() );
+		}
 	}
 
 
@@ -192,7 +185,7 @@ var Core = function() {
 	}
 
 
-	function addCursorObject( object, isDraggable ) {
+	function addCursorObject( object, isInteractable, isDraggable ) {
 		// Add a new object to the list of objects that interact with SphericalCursor
 
 		if ( isDraggable ) {
@@ -200,6 +193,11 @@ var Core = function() {
 
 			object.userData.draggable = true; 
 			draggableObjects.push( object ); 
+		}
+
+		if ( isInteractable ) {
+			
+			object.userData.interactable = true; 
 		}
 
 		Scene.getScene().add( object ); 
@@ -307,6 +305,13 @@ var Core = function() {
 	}
 
 
+	function updatePainterVive( strokes ) {
+		if (player) {
+			player.updatePainterVive( strokes ); 
+		}
+	}
+
+
 
 
 	return {
@@ -318,10 +323,13 @@ var Core = function() {
 		updateFromNetwork: updateFromNetwork, 
 		updateAllFromNetwork: updateAllFromNetwork, 
 		getAllData: getAllData,
-
+		// TODO
+		getVREffect: Scene.getVREffect,
 		getCursorObjects: getCursorObjects, 
 		addCursorObject: addCursorObject, 
-		setPaintColor: setPaintColor
+		setPaintColor: setPaintColor, 
+		// TODO
+		updatePainterVive: updatePainterVive
 	}; 
 
 }(); 

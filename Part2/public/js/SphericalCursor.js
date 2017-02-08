@@ -129,8 +129,10 @@ var SphericalCursor = function() {
 		if ( !intersect && hit ) {
 			// No hit object
 
-			// Reset previous hit object to default color
-			hit.object.material.color.addScalar( -HIGHLIGHT_INTENSITY );
+			if ( hit.object.userData.interactable ) {
+				// Reset previous hit object to default color
+				hit.object.material.color.addScalar( -HIGHLIGHT_INTENSITY );
+			}
 
 			cursor.material.color.setHex( currColor ); 
 
@@ -149,11 +151,15 @@ var SphericalCursor = function() {
 				}
 
 				// Reset current hit object's color to default
-				hit.object.material.color.addScalar( -HIGHLIGHT_INTENSITY );
+				if ( hit.object.userData.interactable ) {
+					hit.object.material.color.addScalar( -HIGHLIGHT_INTENSITY );
+				}
 			}
 
 			// Highlight the new hit object
-			intersect.object.material.color.addScalar( HIGHLIGHT_INTENSITY ); 
+			if ( intersect.object.userData.interactable ) {
+				intersect.object.material.color.addScalar( HIGHLIGHT_INTENSITY ); 
+			}
 		}
 
 		// Store the intersect as the current hit object

@@ -69,12 +69,20 @@ var Client = function() {
 	});
 
 
-
+	// TODO
+	var isWebVR = WebVR.isAvailable(); 
 	( function update() {
 		// Main update loop
 
 		// Callback this update loop when the next animation frame is available
-		requestAnimationFrame( update );
+		if ( isWebVR && Core.getVREffect() ) {
+
+			Core.getVREffect().requestAnimationFrame( update );
+
+		} else {
+
+			requestAnimationFrame( update );
+		}
 
 		// Update the local game and return updated data for this player
 		var data = Core.update(); 

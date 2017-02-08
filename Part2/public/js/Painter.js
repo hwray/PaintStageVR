@@ -106,7 +106,7 @@ function Painter( scene, isLocal ) {
 			cube.userData.isColorPalette = true; 
 			cube.userData.color = color.getHex(); 
 			cube.name = "palette" + color.getHex(); 
-			Core.addCursorObject( cube, false ); 
+			Core.addCursorObject( cube, true, false ); 
 		}
 	}
 

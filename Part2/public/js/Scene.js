@@ -11,10 +11,11 @@ var Scene = function() {
 	var TABLE_COLOR = 0x444444; 
 
 	// Globals
+	var isWebVR; 
 	var camera; 
 	var scene; 
 	var renderer;
-	var effect;  
+	var vrEffect;  
 	var spotLight; 
 	var spotLightChanged = false; 
 	var loader; 
@@ -47,7 +48,9 @@ var Scene = function() {
 	window.addEventListener( 'resize', onWindowResize, false );
 
 
-	function init() {
+	function init( inIsWebVR ) {
+
+		isWebVR = inIsWebVR; 
 
 		// Init basic scene variables
 		initScene(); 
@@ -59,7 +62,7 @@ var Scene = function() {
 		initGeometry(); 
 
 		// Init renderer
-		initRenderer(); 
+		initRenderer( isWebVR ); 
 
 		// Load and init animated models
 		initModels(); 
@@ -104,7 +107,7 @@ var Scene = function() {
 
 		lightCube.userData.isSpotLightControl = true; 
 
-		Core.addCursorObject( lightCube, true ); 
+		Core.addCursorObject( lightCube, true, true ); 
 	}
 
 
@@ -128,7 +131,7 @@ var Scene = function() {
 		floor.name = "floor"; 
 		scene.add( new THREE.GridHelper( 20, 40, 0x111111, 0x111111 ) );
 
-		Core.addCursorObject(floor); 
+		Core.addCursorObject( floor, false, false ); 
 	}
 
 
@@ -150,19 +153,27 @@ var Scene = function() {
 		table.receiveShadow = true;
 		table.name = "table"; 
 
-		Core.addCursorObject(table); 
+		Core.addCursorObject( table, false, false ); 
 
 	}
 
 
-	function initRenderer() {
+	function initRenderer( isWebVR ) {
 
 		renderer = new THREE.WebGLRenderer( { antialias: true } );
 		renderer.setPixelRatio( window.devicePixelRatio );
 		renderer.setSize( window.innerWidth, window.innerHeight );
+		//	renderer.sortObjects = false;
 		renderer.shadowMap.enabled = true; 
 		renderer.gammaInput = true; 
 		renderer.gammaOutput = true; 
+
+		if ( isWebVR ) {
+			vrEffect = new THREE.VREffect( renderer );
+
+			document.body.appendChild( WebVR.getButton( vrEffect ) );
+		}
+
 		document.body.appendChild( renderer.domElement );
 	}
 
@@ -199,7 +210,7 @@ var Scene = function() {
 			var mesh = new THREE.MorphBlendMesh(geometry, material); 
 
 			mesh.name = id; 
-			Core.addCursorObject( mesh, true ); 
+			Core.addCursorObject( mesh, true, true ); 
 
 			var mixer = new THREE.AnimationMixer( mesh ); 
 
@@ -241,7 +252,14 @@ var Scene = function() {
 			}
 		}
 
-		renderer.render( scene, camera );
+		if ( isWebVR ) {
+
+			vrEffect.render( scene, camera ); 
+
+		} else {
+
+			renderer.render( scene, camera );
+		}
 	}
 
 
@@ -286,6 +304,15 @@ var Scene = function() {
 	}
 
 
+	function getVREffect() {
+		if ( vrEffect ) {
+			return vrEffect; 
+		}
+
+		return null; 
+	}
+
+
 	function onWindowResize() {
 
 		camera.aspect = window.innerWidth / window.innerHeight;
@@ -293,13 +320,14 @@ var Scene = function() {
 
 		renderer.setSize( window.innerWidth, window.innerHeight );
 
-		// TODO: Resize WebVR effect
-		/*
 		if ( isWebVR ) {
-			effect.setSize( window.innerWidth, window.innerHeight );
+
+			vrEffect.setSize( window.innerWidth, window.innerHeight );
+
 		} else {
-			renderer.( window.innerWidth, window.innerHeight );
-		}*/
+			
+			renderer.setSize( window.innerWidth, window.innerHeight );
+		}
 	}
 
 
@@ -311,7 +339,8 @@ var Scene = function() {
 		setSpotLight: setSpotLight, 
 		getSpotLightChange: getSpotLightChange, 
 		toggleSpotLight: toggleSpotLight, 
-		getSpotLightState: getSpotLightState
+		getSpotLightState: getSpotLightState, 
+		getVREffect: getVREffect
 	}; 
 
 }(); 

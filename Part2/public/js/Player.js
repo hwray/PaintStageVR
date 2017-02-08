@@ -121,6 +121,15 @@ function Player( inId, isLocal, inIsFirst, inIsWebVR, camera, inScene ) {
 	}
 
 
+	function updatePainterVive( strokes ) {
+		if (painter) {
+			// TODO: 
+			// Put together a better solution for vive stroke handling
+			painter.updateFromNetwork( strokes ); 
+		}
+	}
+
+
 	function onMouseDown( event ) {
 
 		if ( event.button == 0 ) {
@@ -159,6 +168,7 @@ function Player( inId, isLocal, inIsFirst, inIsWebVR, camera, inScene ) {
 		getUpdateData: getUpdateData, 
 		getAllData: getAllData, 
 		setPaintColor: setPaintColor,
-		getMesh: getMesh
+		getMesh: getMesh, 
+		updatePainterVive: updatePainterVive
 	}; 
 }
